@@ -1,7 +1,7 @@
 {
-  "name": "ninjaone-mcp",
+  "name": "ninjaone-mcp-bridge",
   "version": "1.0.0",
-  "description": "Model Context Protocol server for NinjaOne RMM integration",
+  "description": "Model Context Protocol bridge for NinjaOne RMM integration",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -9,8 +9,8 @@
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "test": "jest",
-    "docker:build": "docker build -f docker/Dockerfile -t ninjaone-mcp:latest .",
-    "docker:run": "docker run -p 3000:3000 --env-file .env ninjaone-mcp:latest"
+    "docker:build": "docker build -f docker/Dockerfile -t ninjaone-mcp-bridge:latest .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env ninjaone-mcp-bridge:latest"
   },
   "keywords": [
     "mcp",

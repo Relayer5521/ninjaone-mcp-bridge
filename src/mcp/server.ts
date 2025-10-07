@@ -17,7 +17,7 @@ export class NinjaOneMCPServer {
     
     this.server = new Server(
       {
-        name: 'ninjaone-mcp',
+        name: 'ninjaone-mcp-bridge',
         version: '1.0.0',
       },
       {

@@ -1,6 +1,6 @@
-# NinjaOne MCP Server
+# NinjaOne MCP Bridge
 
-A Model Context Protocol (MCP) server that enables Claude to interact with NinjaOne RMM platform for MSP operations.
+A Model Context Protocol (MCP) bridge that enables Claude to interact with NinjaOne RMM platform for MSP operations.
 
 ## Features
 
@@ -34,8 +34,8 @@ A Model Context Protocol (MCP) server that enables Claude to interact with Ninja
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/ninjaone-mcp.git
-cd ninjaone-mcp
+git clone https://github.com/yourusername/ninjaone-mcp-bridge.git
+cd ninjaone-mcp-bridge
 ```
 
 ### 2. Configure Environment
@@ -68,9 +68,9 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
-    "ninjaone": {
+    "ninjaone-bridge": {
       "command": "node",
-      "args": ["C:/MSP-Lab/ninjaone-mcp/dist/index.js"],
+      "args": ["C:/MSP-Lab/ninjaone-mcp-bridge/dist/index.js"],
       "env": {
         "NINJAONE_CLIENT_ID": "your_client_id",
         "NINJAONE_CLIENT_SECRET": "your_client_secret",
@@ -98,14 +98,14 @@ npm run lint
 
 ```bash
 # Build Docker image
-docker build -f docker/Dockerfile -t ninjaone-mcp:latest .
+docker build -f docker/Dockerfile -t ninjaone-mcp-bridge:latest .
 
 # Run container
 docker run -d \
-  --name ninjaone-mcp \
+  --name ninjaone-mcp-bridge \
   --env-file .env \
   -v $(pwd)/logs:/app/logs \
-  ninjaone-mcp:latest
+  ninjaone-mcp-bridge:latest
 ```
 
 ## Security
@@ -119,7 +119,7 @@ docker run -d \
 ## Project Structure
 
 ```
-ninjaone-mcp/
+ninjaone-mcp-bridge/
 ├── src/
 │   ├── api/
 │   │   ├── client.ts      # NinjaOne API client

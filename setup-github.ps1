@@ -1,10 +1,10 @@
-# NinjaOne MCP - GitHub Upload Script
+# NinjaOne MCP Bridge - GitHub Upload Script
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "NinjaOne MCP - GitHub Upload Script" -ForegroundColor Yellow
+Write-Host "NinjaOne MCP Bridge - GitHub Upload Script" -ForegroundColor Yellow
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-Set-Location C:\MSP-Lab\ninjaone-mcp
+Set-Location C:\MSP-Lab\ninjaone-mcp-bridge
 
 Write-Host "Initializing Git repository..." -ForegroundColor Green
 git init
@@ -20,18 +20,18 @@ git add .
 
 Write-Host ""
 Write-Host "Creating initial commit..." -ForegroundColor Green
-git commit -m "Initial commit - NinjaOne MCP Server"
+git commit -m "Initial commit - NinjaOne MCP Bridge"
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Repository initialized locally!" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "1. Create a new repository on GitHub named 'ninjaone-mcp'" -ForegroundColor White
+Write-Host "1. Create a new repository on GitHub named 'ninjaone-mcp-bridge'" -ForegroundColor White
 Write-Host "2. Do NOT initialize with README or .gitignore" -ForegroundColor White
 Write-Host "3. Run the following commands:" -ForegroundColor White
 Write-Host ""
-Write-Host "git remote add origin https://github.com/YOUR_USERNAME/ninjaone-mcp.git" -ForegroundColor Cyan
+Write-Host "git remote add origin https://github.com/YOUR_USERNAME/ninjaone-mcp-bridge.git" -ForegroundColor Cyan
 Write-Host "git branch -M main" -ForegroundColor Cyan
 Write-Host "git push -u origin main" -ForegroundColor Cyan
 Write-Host ""

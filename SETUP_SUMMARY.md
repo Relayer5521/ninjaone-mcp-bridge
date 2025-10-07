@@ -1,9 +1,9 @@
-# NinjaOne MCP Server - Setup Summary
+# NinjaOne MCP Bridge - Setup Summary
 
 ## ✅ Project Status: COMPLETE
 
-Your NinjaOne MCP server has been fully reconstructed at:
-`C:\MSP-Lab\ninjaone-mcp\`
+Your NinjaOne MCP Bridge has been fully reconstructed at:
+`C:\MSP-Lab\ninjaone-mcp-bridge\`
 
 ## 📁 What's Included
 
@@ -18,7 +18,7 @@ Your NinjaOne MCP server has been fully reconstructed at:
 
 ### Project Structure:
 ```
-C:\MSP-Lab\ninjaone-mcp\
+C:\MSP-Lab\ninjaone-mcp-bridge\
 ├── src/
 │   ├── api/           (NinjaOne API client)
 │   ├── mcp/           (MCP server implementation)
@@ -49,13 +49,13 @@ Edit `.env` and replace `YOUR_CLIENT_SECRET_HERE` with your actual NinjaOne clie
 
 #### Option B: Manual steps
 ```bash
-cd C:\MSP-Lab\ninjaone-mcp
+cd C:\MSP-Lab\ninjaone-mcp-bridge
 git init
 git add .
-git commit -m "Initial commit - NinjaOne MCP Server"
+git commit -m "Initial commit - NinjaOne MCP Bridge"
 
 # Create repo on GitHub first, then:
-git remote add origin https://github.com/Relayer5521/ninjaone-mcp-server.git
+git remote add origin https://github.com/Relayer5521/ninjaone-mcp-bridge.git
 git branch -M main
 git push -u origin main
 ```
@@ -64,8 +64,8 @@ git push -u origin main
 
 Once pushed to GitHub, on your laptop:
 ```bash
-git clone https://github.com/Relayer5521/ninjaone-mcp-server.git
-cd ninjaone-mcp-server
+git clone https://github.com/Relayer5521/ninjaone-mcp-bridge.git
+cd ninjaone-mcp-bridge
 npm install
 npm run build
 ```
@@ -76,9 +76,9 @@ Add to Claude Desktop config:
 ```json
 {
   "mcpServers": {
-    "ninjaone": {
+    "ninjaone-bridge": {
       "command": "node",
-      "args": ["path/to/ninjaone-mcp-server/dist/index.js"],
+      "args": ["path/to/ninjaone-mcp-bridge/dist/index.js"],
       "env": {
         "NINJAONE_CLIENT_ID": "MAraZ8EexjQdQN-U4cm4sarSypU",
         "NINJAONE_CLIENT_SECRET": "your_secret_here",
@@ -119,5 +119,5 @@ npm start
 ---
 
 Generated: Tuesday, October 07, 2025
-Location: C:\MSP-Lab\ninjaone-mcp\
+Location: C:\MSP-Lab\ninjaone-mcp-bridge\
 Ready for: GitHub upload and deployment

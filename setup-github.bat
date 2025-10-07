@@ -1,10 +1,10 @@
 @echo off
 echo ========================================
-echo NinjaOne MCP - GitHub Upload Script
+echo NinjaOne MCP Bridge - GitHub Upload Script
 echo ========================================
 echo.
 
-cd /d C:\MSP-Lab\ninjaone-mcp
+cd /d C:\MSP-Lab\ninjaone-mcp-bridge
 
 echo Initializing Git repository...
 git init
@@ -20,18 +20,18 @@ git add .
 
 echo.
 echo Creating initial commit...
-git commit -m "Initial commit - NinjaOne MCP Server"
+git commit -m "Initial commit - NinjaOne MCP Bridge"
 
 echo.
 echo ========================================
 echo Repository initialized locally!
 echo.
 echo Next steps:
-echo 1. Create a new repository on GitHub named 'ninjaone-mcp'
+echo 1. Create a new repository on GitHub named 'ninjaone-mcp-bridge'
 echo 2. Do NOT initialize with README or .gitignore
 echo 3. Run the following commands:
 echo.
-echo git remote add origin https://github.com/YOUR_USERNAME/ninjaone-mcp.git
+echo git remote add origin https://github.com/YOUR_USERNAME/ninjaone-mcp-bridge.git
 echo git branch -M main
 echo git push -u origin main
 echo.

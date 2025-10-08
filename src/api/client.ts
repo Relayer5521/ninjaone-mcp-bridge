@@ -6,11 +6,19 @@ import {
   Alert,
   Activity,
   Software,
-  CustomField,
   DeviceRole,
   OSPatch,
-  AntivirusStatus,
-  AuditLogEntry
+  AuditLogEntry,
+  // Phase 1 types
+  QueryParams,
+  DeviceHealthResponse,
+  OSPatchStatusResponse,
+  AntivirusStatusResponse,
+  Policy,
+  Group,
+  ActiveJob,
+  ScheduledTask,
+  ExtendedCustomField
 } from './types';
 import { config } from '../config';
 
@@ -233,6 +241,164 @@ export class NinjaOneClient {
       logger.error('Health check failed:', error);
       return false;
     }
+  }
+
+  // ============ PHASE 1 QUERY METHODS ============
+
+  // Query Device Health
+  async queryDeviceHealth(params?: QueryParams): Promise<DeviceHealthResponse> {
+    const queryString = new URLSearchParams();
+    if (params?.filter) queryString.append('df', params.filter);
+    if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+    if (params?.after) queryString.append('after', params.after);
+
+    const endpoint = `/v2/queries/device-health${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+    const response = await this.request<DeviceHealthResponse>(endpoint);
+    
+    await this.auditLog({
+      action: 'query_device_health',
+      success: true,
+      details: { 
+        deviceCount: response.data.length,
+        filter: params?.filter 
+      }
+    });
+    return response;
+  }
+
+  // Query OS Patch Status
+  async queryOSPatchStatus(params?: QueryParams): Promise<OSPatchStatusResponse> {
+    const queryString = new URLSearchParams();
+    if (params?.filter) queryString.append('df', params.filter);
+    if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+    if (params?.after) queryString.append('after', params.after);
+
+    const endpoint = `/v2/queries/os-patch-status${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+    const response = await this.request<OSPatchStatusResponse>(endpoint);
+    
+    await this.auditLog({
+      action: 'query_os_patches',
+      success: true,
+      details: { 
+        deviceCount: response.data.length,
+        filter: params?.filter 
+      }
+    });
+    return response;
+  }
+
+  // Query Antivirus Status
+  async queryAntivirusStatus(params?: QueryParams): Promise<AntivirusStatusResponse> {
+    const queryString = new URLSearchParams();
+    if (params?.filter) queryString.append('df', params.filter);
+    if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+    if (params?.after) queryString.append('after', params.after);
+
+    const endpoint = `/v2/queries/antivirus-status${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+    const response = await this.request<AntivirusStatusResponse>(endpoint);
+    
+    await this.auditLog({
+      action: 'query_antivirus_status',
+      success: true,
+      details: { 
+        deviceCount: response.data.length,
+        filter: params?.filter 
+      }
+    });
+    return response;
+  }
+
+  // Get Policies
+  async getPolicies(params?: { pageSize?: number; after?: string }): Promise<Policy[]> {
+    const queryString = new URLSearchParams();
+    if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+    if (params?.after) queryString.append('after', params.after);
+
+    const endpoint = `/v2/policies${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+    const policies = await this.request<Policy[]>(endpoint);
+    
+    await this.auditLog({
+      action: 'get_policies',
+      success: true,
+      details: { count: policies.length }
+    });
+    return policies;
+  }
+
+  // Get Groups
+  async getGroups(params?: { pageSize?: number; after?: string }): Promise<Group[]> {
+    const queryString = new URLSearchParams();
+    if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+    if (params?.after) queryString.append('after', params.after);
+
+    const endpoint = `/v2/groups${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+    const groups = await this.request<Group[]>(endpoint);
+    
+    await this.auditLog({
+      action: 'get_groups',
+      success: true,
+      details: { count: groups.length }
+    });
+    return groups;
+  }
+
+  // Get Active Jobs
+  async getActiveJobs(params?: { pageSize?: number; after?: string }): Promise<ActiveJob[]> {
+    const queryString = new URLSearchParams();
+    if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+    if (params?.after) queryString.append('after', params.after);
+
+    const endpoint = `/v2/jobs/active${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+    const jobs = await this.request<ActiveJob[]>(endpoint);
+    
+    await this.auditLog({
+      action: 'get_active_jobs',
+      success: true,
+      details: { count: jobs.length }
+    });
+    return jobs;
+  }
+
+  // Get Scheduled Tasks
+  async getScheduledTasks(params?: { pageSize?: number; after?: string }): Promise<ScheduledTask[]> {
+    const queryString = new URLSearchParams();
+    if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+    if (params?.after) queryString.append('after', params.after);
+
+    const endpoint = `/v2/scheduled-tasks${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+    const tasks = await this.request<ScheduledTask[]>(endpoint);
+    
+    await this.auditLog({
+      action: 'get_scheduled_tasks',
+      success: true,
+      details: { count: tasks.length }
+    });
+    return tasks;
+  }
+
+  // Get Custom Fields
+  async getCustomFields(params?: { 
+    scope?: 'DEVICE' | 'ORGANIZATION' | 'LOCATION' | 'USER';
+    pageSize?: number; 
+    after?: string 
+  }): Promise<ExtendedCustomField[]> {
+    const queryString = new URLSearchParams();
+    if (params?.scope) queryString.append('scope', params.scope);
+    if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+    if (params?.after) queryString.append('after', params.after);
+
+    const endpoint = `/v2/custom-fields${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+    const fields = await this.request<ExtendedCustomField[]>(endpoint);
+    
+    await this.auditLog({
+      action: 'get_custom_fields',
+      success: true,
+      details: { 
+        count: fields.length,
+        scope: params?.scope 
+      }
+    });
+    return fields;
   }
 }
 

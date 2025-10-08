@@ -13,6 +13,7 @@ A Model Context Protocol (MCP) bridge that enables Claude to interact with Ninja
 
 ## Available Tools
 
+### Basic Tools (Original)
 - `ninjaone_get_organizations` - List all organizations
 - `ninjaone_get_organization` - Get specific organization details
 - `ninjaone_get_devices` - List devices (all or by organization)
@@ -20,8 +21,19 @@ A Model Context Protocol (MCP) bridge that enables Claude to interact with Ninja
 - `ninjaone_get_alerts` - Get alerts with filtering
 - `ninjaone_get_activities` - Get activity logs
 - `ninjaone_get_device_software` - Get software inventory for a device
-- `ninjaone_get_os_patches` - Get OS patches for a device
+- `ninjaone_get_os_patches` - Get OS patches for a single device
 - `ninjaone_health_check` - Check API connectivity
+
+### Phase 1 Query Tools (NEW)
+- `ninjaone_query_device_health` - Query device health status across environment with filtering
+- `ninjaone_query_os_patches` - Query OS patch status across all devices with compliance reporting
+- `ninjaone_query_antivirus_status` - Query antivirus status and threat detection across devices
+- `ninjaone_get_device_roles` - List all device role definitions and associated custom fields
+- `ninjaone_get_policies` - List all policies (patch, AV, backup) configured in NinjaOne
+- `ninjaone_get_groups` - List saved search groups (static and dynamic)
+- `ninjaone_get_active_jobs` - Get currently running or pending jobs across all devices
+- `ninjaone_get_scheduled_tasks` - List all scheduled automation tasks with cron schedules
+- `ninjaone_get_custom_fields` - Get custom field definitions for devices, orgs, locations, or users
 
 ## Prerequisites
 
@@ -146,3 +158,53 @@ MIT
 ## Support
 
 For issues or questions, please open an issue on GitHub.
+
+
+## Phase 1 Usage Examples
+
+### Device Health Monitoring
+```
+"Check the health status of all devices"
+"Show me critical health issues across the organization"
+"Which devices are offline?"
+```
+
+### Patch Management
+```
+"Show me all critical patches pending"
+"Which servers need patches?"
+"Get patch statistics for Windows devices"
+```
+
+### Security Status
+```
+"Check antivirus status on all workstations"
+"Show devices with active threats"
+"Which devices have outdated AV definitions?"
+```
+
+### Configuration & Automation
+```
+"List all device roles and their custom fields"
+"Show me enabled policies"
+"What dynamic groups exist?"
+"Are there any jobs running right now?"
+"What tasks are scheduled for tonight?"
+```
+
+### Filter Examples (df parameter)
+- `status = 'APPROVED'` - Approved devices only
+- `os = 'WINDOWS' OR os = 'MAC'` - Windows or Mac devices  
+- `nodeClass = 'WINDOWS_SERVER'` - Windows servers only
+- `organization = 123 AND offline = true` - Offline devices in specific org
+- `lastContact < '2024-10-01'` - Devices not seen since October
+
+### Pagination
+All Phase 1 tools support pagination:
+- `pageSize` - Number of results per page (default: 100, max: 1000)
+- `after` - Cursor from previous response to get next page
+
+## Version History
+
+- **v1.0.0** - Initial release with basic read-only tools
+- **v1.1.0** - Phase 1 expansion with 9 new query tools (device health, patches, AV, policies, groups, jobs, tasks, custom fields)

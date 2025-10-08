@@ -1,6 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 export const tools: Tool[] = [
+  // ============ EXISTING TOOLS ============
   {
     name: 'ninjaone_get_organizations',
     description: 'Get all organizations from NinjaOne RMM',
@@ -105,7 +106,7 @@ export const tools: Tool[] = [
   },
   {
     name: 'ninjaone_get_os_patches',
-    description: 'Get OS patches for a device',
+    description: 'Get OS patches for a specific device',
     inputSchema: {
       type: 'object',
       properties: {
@@ -123,6 +124,214 @@ export const tools: Tool[] = [
     inputSchema: {
       type: 'object',
       properties: {},
+      required: []
+    }
+  },
+
+  // ============ PHASE 1 QUERY TOOLS ============
+  {
+    name: 'ninjaone_query_device_health',
+    description: 'Query device health status across your environment. Returns device health rollup with issues categorized by severity. Supports filtering by organization, OS type, online/offline status, and more using NinjaOne\'s device filter syntax.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        filter: {
+          type: 'string',
+          description: 'Device filter using NinjaOne df syntax. Examples: \'status = APPROVED\', \'os = WINDOWS\', \'organization = 123 AND offline = true\', \'nodeClass = WINDOWS_SERVER AND lastContact < 2024-10-01\''
+        },
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_query_os_patches',
+    description: 'Query OS patch status across all devices. Returns pending patches categorized by severity (critical, important, moderate, low). Essential for compliance reporting and security posture assessment.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        filter: {
+          type: 'string',
+          description: 'Device filter using NinjaOne df syntax. Examples: \'os = WINDOWS_SERVER\', \'organization = 123\', \'nodeClass = LAPTOP AND os = MAC\''
+        },
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_query_antivirus_status',
+    description: 'Query antivirus status and threat detection across devices. Returns AV product status, definition updates, real-time protection state, and any detected threats with their quarantine status.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        filter: {
+          type: 'string',
+          description: 'Device filter using NinjaOne df syntax. Examples: \'os = WINDOWS\', \'organization = 123 AND nodeClass = WORKSTATION\''
+        },
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_get_device_roles',
+    description: 'List all device role definitions in NinjaOne. Device roles define the type of device (workstation, server, etc.) and associated custom fields, policies, and automation rules.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_get_policies',
+    description: 'List all policies configured in NinjaOne. Policies define patch management, antivirus, backup, and other automated management rules applied to device roles.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_get_groups',
+    description: 'List saved search groups (static and dynamic device groups). Groups are used for targeting policies, scripts, and mass actions. Dynamic groups auto-update based on filter criteria.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_get_active_jobs',
+    description: 'Get currently running or pending jobs across all devices. Includes scripts, patches, software deployments, and reboots with progress tracking.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_get_scheduled_tasks',
+    description: 'List all scheduled automation tasks. Includes recurring scripts, patch schedules, backup jobs, and maintenance windows with their cron schedules and target groups.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_get_custom_fields',
+    description: 'Get custom field definitions for devices, organizations, locations, or users. Shows field types, validation rules, and default values configured in your NinjaOne instance.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        scope: {
+          type: 'string',
+          enum: ['DEVICE', 'ORGANIZATION', 'LOCATION', 'USER'],
+          description: 'Filter by field scope (optional). If not specified, returns all custom fields.'
+        },
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
       required: []
     }
   }

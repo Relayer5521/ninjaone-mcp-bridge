@@ -108,3 +108,210 @@ export interface AuditLogEntry {
   deviceId?: number;
   organizationId?: number;
 }
+
+// Phase 1 Query Types
+export interface QueryParams {
+  filter?: string;
+  pageSize?: number;
+  after?: string;
+}
+
+export interface DeviceHealthResponse {
+  data: Array<{
+    deviceId: number;
+    organizationId: number;
+    deviceName: string;
+    health: 'HEALTHY' | 'WARNING' | 'CRITICAL' | 'OFFLINE';
+    lastContact: string;
+    issues: Array<{
+      type: string;
+      severity: string;
+      message: string;
+    }>;
+  }>;
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalItems?: number;
+  };
+}
+
+export interface OSPatchStatusResponse {
+  data: Array<{
+    deviceId: number;
+    deviceName: string;
+    osPatches: {
+      critical: number;
+      important: number;
+      moderate: number;
+      low: number;
+      other: number;
+      totalPending: number;
+      lastScanTime: string;
+    };
+  }>;
+  metadata: {
+    pageSize: number;
+    after?: string;
+  };
+}
+
+export interface AntivirusStatusResponse {
+  data: Array<{
+    deviceId: number;
+    deviceName: string;
+    antivirus: {
+      product: string;
+      status: 'ACTIVE' | 'INACTIVE' | 'NOT_INSTALLED';
+      definitionsUpToDate: boolean;
+      realTimeProtection: boolean;
+      lastScanDate: string;
+      threats: Array<{
+        name: string;
+        severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+        status: 'QUARANTINED' | 'REMOVED' | 'ACTIVE';
+        detectedDate: string;
+      }>;
+    };
+  }>;
+  metadata: {
+    pageSize: number;
+    after?: string;
+  };
+}
+
+export interface Policy {
+  id: number;
+  name: string;
+  description: string;
+  policyType: 'WINDOWS_PATCH' | 'MAC_PATCH' | 'LINUX_PATCH' | 'ANTIVIRUS' | 'BACKUP' | 'CUSTOM';
+  enabled: boolean;
+  nodeRoleId: number;
+  nodeRoleName: string;
+  conditions: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Group {
+  id: number;
+  name: string;
+  description: string;
+  type: 'STATIC' | 'DYNAMIC';
+  filter?: string;
+  deviceCount: number;
+  organizationId?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ActiveJob {
+  id: string;
+  type: 'SCRIPT' | 'PATCH' | 'SOFTWARE_INSTALL' | 'SOFTWARE_UNINSTALL' | 'REBOOT' | 'BACKUP';
+  status: 'RUNNING' | 'PENDING' | 'CANCELLING';
+  deviceId: number;
+  deviceName: string;
+  organizationId: number;
+  organizationName: string;
+  startedAt: string;
+  progress?: number;
+  estimatedCompletion?: string;
+  initiatedBy: string;
+}
+
+export interface ScheduledTask {
+  id: number;
+  name: string;
+  description: string;
+  taskType: 'SCRIPT' | 'PATCH' | 'BACKUP' | 'MAINTENANCE' | 'REPORT';
+  schedule: {
+    frequency: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM';
+    cronExpression?: string;
+    nextRun: string;
+    lastRun?: string;
+  };
+  enabled: boolean;
+  targets: {
+    groups?: number[];
+    devices?: number[];
+    organizations?: number[];
+  };
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExtendedCustomField {
+  id: number;
+  name: string;
+  fieldName: string;
+  description: string;
+  type: 'TEXT' | 'NUMBER' | 'DATE' | 'DROPDOWN' | 'CHECKBOX' | 'MULTISELECT';
+  scope: 'DEVICE' | 'ORGANIZATION' | 'LOCATION' | 'USER';
+  required: boolean;
+  defaultValue?: any;
+  options?: string[];
+  validation?: {
+    min?: number;
+    max?: number;
+    regex?: string;
+    maxLength?: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Phase 1 Response Types
+export interface DeviceRolesResponse {
+  data: DeviceRole[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalItems?: number;
+  };
+}
+
+export interface PoliciesResponse {
+  data: Policy[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalItems?: number;
+  };
+}
+
+export interface GroupsResponse {
+  data: Group[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+  };
+}
+
+export interface ActiveJobsResponse {
+  data: ActiveJob[];
+  metadata: {
+    totalRunning: number;
+    totalPending: number;
+    pageSize: number;
+    after?: string;
+  };
+}
+
+export interface ScheduledTasksResponse {
+  data: ScheduledTask[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalItems?: number;
+  };
+}
+
+export interface CustomFieldsResponse {
+  data: ExtendedCustomField[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalItems?: number;
+  };
+}

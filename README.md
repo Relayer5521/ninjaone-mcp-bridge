@@ -1,210 +1,223 @@
-# NinjaOne MCP Bridge
+# NinjaOne MCP Bridge - Phase 1 Complete ✅
 
-A Model Context Protocol (MCP) bridge that enables Claude to interact with NinjaOne RMM platform for MSP operations.
+Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Features OAuth 2.0 authentication, comprehensive error handling, audit logging, and 18 powerful tools for MSP operations.
 
-## Features
+## 🚀 Phase 1 Features (COMPLETE)
 
-- 🔒 Secure OAuth 2.0 authentication
-- 📊 Read-only access to NinjaOne data
-- 🚀 Full TypeScript implementation
-- 📝 Comprehensive audit logging
-- ⚡ Rate limiting protection
-- 🐳 Docker support
-
-## Available Tools
-
-### Basic Tools (Original)
+### Core Tools (Original)
 - `ninjaone_get_organizations` - List all organizations
 - `ninjaone_get_organization` - Get specific organization details
-- `ninjaone_get_devices` - List devices (all or by organization)
+- `ninjaone_get_devices` - List devices (with optional org filter)
 - `ninjaone_get_device` - Get specific device details
-- `ninjaone_get_alerts` - Get alerts with filtering
-- `ninjaone_get_activities` - Get activity logs
-- `ninjaone_get_device_software` - Get software inventory for a device
-- `ninjaone_get_os_patches` - Get OS patches for a single device
-- `ninjaone_health_check` - Check API connectivity
+- `ninjaone_get_alerts` - Get alerts with severity/status filtering
+- `ninjaone_get_activities` - Activity logs with filtering
+- `ninjaone_get_device_software` - Software inventory per device
+- `ninjaone_get_os_patches` - OS patches for specific device
+- `ninjaone_health_check` - API connectivity check
 
 ### Phase 1 Query Tools (NEW)
-- `ninjaone_query_device_health` - Query device health status across environment with filtering
-- `ninjaone_query_os_patches` - Query OS patch status across all devices with compliance reporting
-- `ninjaone_query_antivirus_status` - Query antivirus status and threat detection across devices
-- `ninjaone_get_device_roles` - List all device role definitions and associated custom fields
-- `ninjaone_get_policies` - List all policies (patch, AV, backup) configured in NinjaOne
-- `ninjaone_get_groups` - List saved search groups (static and dynamic)
-- `ninjaone_get_active_jobs` - Get currently running or pending jobs across all devices
-- `ninjaone_get_scheduled_tasks` - List all scheduled automation tasks with cron schedules
-- `ninjaone_get_custom_fields` - Get custom field definitions for devices, orgs, locations, or users
+- `ninjaone_query_device_health` - Device health rollup across environment
+- `ninjaone_query_os_patches` - OS patch status across all devices
+- `ninjaone_query_antivirus_status` - AV status and threat detection
+- `ninjaone_get_device_roles` - List all device role definitions
+- `ninjaone_get_policies` - List all policies (patch, AV, backup)
+- `ninjaone_get_groups` - Static and dynamic device groups
+- `ninjaone_get_active_jobs` - Currently running/pending jobs
+- `ninjaone_get_scheduled_tasks` - Scheduled automation tasks
+- `ninjaone_get_custom_fields` - Custom field definitions
 
-## Prerequisites
+## 📋 Installation
 
-- Node.js 18+ or Docker
+### Prerequisites
+- Node.js 18+
 - NinjaOne API credentials
-- Claude Desktop (for MCP integration)
+- Claude Desktop
 
-## Setup
-
-### 1. Clone the Repository
-
+### Setup
 ```bash
-git clone https://github.com/yourusername/ninjaone-mcp-bridge.git
+# Clone the repository
+git clone https://github.com/Relayer5521/ninjaone-mcp-bridge.git
 cd ninjaone-mcp-bridge
-```
 
-### 2. Configure Environment
-
-Create a `.env` file with your NinjaOne credentials:
-
-```env
-NINJAONE_CLIENT_ID=your_client_id_here
-NINJAONE_CLIENT_SECRET=your_client_secret_here
-NINJAONE_REGION=US
-LOG_LEVEL=info
-```
-
-### 3. Install Dependencies
-
-```bash
+# Install dependencies
 npm install
-```
 
-### 4. Build the Project
-
-```bash
+# Build the project
 npm run build
 ```
 
-### 5. Configure Claude Desktop
+### Claude Desktop Configuration
 
-Add to your Claude Desktop configuration (`claude_desktop_config.json`):
+Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "ninjaone-bridge": {
       "command": "node",
-      "args": ["C:/MSP-Lab/ninjaone-mcp-bridge/dist/index.js"],
+      "args": [
+        "C:\\path\\to\\ninjaone-mcp-bridge\\dist\\index.js"
+      ],
       "env": {
-        "NINJAONE_CLIENT_ID": "your_client_id",
-        "NINJAONE_CLIENT_SECRET": "your_client_secret",
-        "NINJAONE_REGION": "US"
+        "NINJAONE_CLIENT_ID": "your-client-id",
+        "NINJAONE_CLIENT_SECRET": "your-client-secret",
+        "NINJAONE_REGION": "US",
+        "NODE_ENV": "production",
+        "LOG_LEVEL": "info"
       }
     }
   }
 }
 ```
 
-## Development
-
-```bash
-# Run in development mode
-npm run dev
-
-# Run tests
-npm test
-
-# Lint code
-npm run lint
-```
-
-## Docker Deployment
-
-```bash
-# Build Docker image
-docker build -f docker/Dockerfile -t ninjaone-mcp-bridge:latest .
-
-# Run container
-docker run -d \
-  --name ninjaone-mcp-bridge \
-  --env-file .env \
-  -v $(pwd)/logs:/app/logs \
-  ninjaone-mcp-bridge:latest
-```
-
-## Security
-
-- API credentials are never exposed to Claude
-- All operations are read-only
-- Comprehensive audit logging
-- Rate limiting prevents API abuse
-- Runs as non-root user in Docker
-
-## Project Structure
-
-```
-ninjaone-mcp-bridge/
-├── src/
-│   ├── api/
-│   │   ├── client.ts      # NinjaOne API client
-│   │   └── types.ts       # TypeScript interfaces
-│   ├── mcp/
-│   │   ├── server.ts      # MCP server implementation
-│   │   └── tools.ts       # Tool definitions
-│   ├── utils/
-│   │   └── logger.ts      # Winston logger
-│   ├── config.ts          # Configuration management
-│   └── index.ts           # Entry point
-├── docker/
-│   └── Dockerfile         # Docker configuration
-├── logs/                  # Application logs
-├── package.json           # Dependencies
-├── tsconfig.json          # TypeScript config
-└── .env                   # Environment variables
-```
-
-## License
-
-MIT
-
-## Support
-
-For issues or questions, please open an issue on GitHub.
-
-
-## Phase 1 Usage Examples
+## 🔍 Usage Examples
 
 ### Device Health Monitoring
 ```
-"Check the health status of all devices"
-"Show me critical health issues across the organization"
-"Which devices are offline?"
+"Show me all devices with critical health issues"
+"Check device health for organization 123"
+"List offline devices"
 ```
 
 ### Patch Management
 ```
-"Show me all critical patches pending"
-"Which servers need patches?"
-"Get patch statistics for Windows devices"
+"Show critical patches pending across all servers"
+"Which devices need Windows updates?"
+"Get patch statistics for the environment"
 ```
 
-### Security Status
+### Security Monitoring
 ```
 "Check antivirus status on all workstations"
 "Show devices with active threats"
 "Which devices have outdated AV definitions?"
 ```
 
-### Configuration & Automation
+### Configuration Management
 ```
-"List all device roles and their custom fields"
-"Show me enabled policies"
-"What dynamic groups exist?"
+"List all device roles and their policies"
+"Show me enabled backup policies"
+"What dynamic groups are configured?"
+```
+
+### Operations Monitoring
+```
 "Are there any jobs running right now?"
-"What tasks are scheduled for tonight?"
+"What maintenance tasks are scheduled for tonight?"
+"Show me all custom fields for devices"
 ```
 
-### Filter Examples (df parameter)
-- `status = 'APPROVED'` - Approved devices only
-- `os = 'WINDOWS' OR os = 'MAC'` - Windows or Mac devices  
-- `nodeClass = 'WINDOWS_SERVER'` - Windows servers only
-- `organization = 123 AND offline = true` - Offline devices in specific org
-- `lastContact < '2024-10-01'` - Devices not seen since October
+## 🔐 Security Features
 
-### Pagination
-All Phase 1 tools support pagination:
-- `pageSize` - Number of results per page (default: 100, max: 1000)
-- `after` - Cursor from previous response to get next page
+- **OAuth 2.0 Authentication** with automatic token refresh
+- **Read-only operations** in Phase 1 (zero risk)
+- **Comprehensive audit logging** for all API calls
+- **Rate limiting** compliance (30 req/min)
+- **Error handling** with detailed logging
+- **Environment-based configuration** (no hardcoded secrets)
 
-## Version History
+## 📊 Response Features
 
-- **v1.0.0** - Initial release with basic read-only tools
-- **v1.1.0** - Phase 1 expansion with 9 new query tools (device health, patches, AV, policies, groups, jobs, tasks, custom fields)
+All tools provide:
+- **Rich summaries** with counts and statistics
+- **Grouped data** for better organization
+- **Pagination support** with cursor-based navigation
+- **Actionable insights** (critical devices, upcoming tasks, etc.)
+- **Formatted JSON** responses for readability
+
+## 🛠️ Development
+
+### Project Structure
+```
+ninjaone-mcp-bridge/
+├── src/
+│   ├── api/
+│   │   ├── client.ts     # NinjaOne API client
+│   │   └── types.ts      # TypeScript interfaces
+│   ├── mcp/
+│   │   ├── server.ts     # MCP server implementation
+│   │   └── tools.ts      # Tool definitions
+│   ├── utils/
+│   │   └── logger.ts     # Winston logging
+│   ├── config.ts         # Configuration
+│   └── index.ts          # Entry point
+├── dist/                 # Compiled output
+├── package.json
+└── tsconfig.json
+```
+
+### Testing Tools
+```bash
+# Test Phase 1 tools
+node test-phase1.js
+
+# Check build
+npm run build
+
+# View logs
+tail -f ninjaone-mcp.log
+```
+
+## 📈 Roadmap
+
+### ✅ Phase 1 (COMPLETE)
+- 9 read-only query tools
+- Device health, patches, AV monitoring
+- Configuration viewing
+- Job and task monitoring
+
+### 🔄 Phase 2 (Next)
+- Enhanced device queries
+- Advanced filtering with df syntax
+- Activity logs with date filtering
+- Backup status queries
+
+### ⚠️ Phase 3 (Requires Approval Framework)
+- Device actions (reboot, maintenance mode)
+- Alert acknowledgment
+- Approval pattern: "APPROVE: <device_id>"
+
+### 🚀 Phase 4 (Advanced)
+- Service control
+- Script execution
+- Ticket management
+- Software deployment
+
+### 🏢 Phase 5 (Enterprise)
+- Organization management
+- Policy deployment
+- Webhook configuration
+- Admin operations
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Follow existing patterns
+4. Add comprehensive error handling
+5. Update documentation
+6. Submit PR with detailed description
+
+## 📝 License
+
+MIT License - See LICENSE file
+
+## 🙏 Acknowledgments
+
+- Built for MSP operations
+- Production-quality implementation
+- Following MCP best practices
+- Designed for expansion and maintenance
+
+## 💬 Support
+
+- Issues: [GitHub Issues](https://github.com/Relayer5521/ninjaone-mcp-bridge/issues)
+- Documentation: [MCP Docs](https://modelcontextprotocol.io)
+- NinjaOne API: [API Documentation](https://app.ninjarmm.com/apidocs/)
+
+---
+
+**Version**: 1.1.0  
+**Phase**: 1 Complete  
+**Tools**: 18  
+**Status**: Production Ready 🚀

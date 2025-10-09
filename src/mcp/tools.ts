@@ -1,7 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 export const tools: Tool[] = [
-  // ============ EXISTING TOOLS ============
+  // ============ PHASE 1 CORE TOOLS ============
   {
     name: 'ninjaone_get_organizations',
     description: 'Get all organizations from NinjaOne RMM',
@@ -61,8 +61,8 @@ export const tools: Tool[] = [
       properties: {
         severity: {
           type: 'string',
-          description: 'Filter by severity: CRITICAL, HIGH, MODERATE, LOW, INFO',
-          enum: ['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'INFO']
+          enum: ['CRITICAL', 'HIGH', 'MODERATE', 'LOW', 'INFO'],
+          description: 'Filter by severity: CRITICAL, HIGH, MODERATE, LOW, INFO'
         },
         status: {
           type: 'string',
@@ -369,7 +369,7 @@ Use Cases:
       properties: {
         df: {
           type: 'string',
-          description: `Device filter using NinjaOne df syntax. Supports: org, loc, role, id, class, status, online/offline, created dates, group. Use AND to combine filters. Examples: "class=WINDOWS_SERVER AND offline", "org=123 AND online", "created after 2024-01-01"`
+          description: 'Device filter using NinjaOne df syntax. Supports: org, loc, role, id, class, status, online/offline, created dates, group. Use AND to combine filters. Examples: "class=WINDOWS_SERVER AND offline", "org=123 AND online", "created after 2024-01-01"'
         },
         pageSize: {
           type: 'number',
@@ -381,6 +381,57 @@ Use Cases:
         after: {
           type: 'string',
           description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
+  },
+  {
+    name: 'ninjaone_query_software_inventory',
+    description: `Query software inventory across your entire device environment. Search for specific software by name, filter by device class or organization, and get detailed installation information.
+
+Use Cases:
+- "Find all devices with Chrome installed"
+- "Which machines have Adobe Reader?"
+- "Show me all servers with SQL Server installed"
+- "Find devices with Java installed in organization 5"
+- "List all software on Windows workstations"
+
+Returns detailed installation data including:
+- Device and organization information
+- Software name, version, and publisher
+- Installation dates
+- Summary statistics (unique devices, software counts, distribution by class/org/version)`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        softwareName: {
+          type: 'string',
+          description: 'Software name to search for (e.g., "Chrome", "Office", "Adobe"). Partial matches supported.'
+        },
+        deviceClass: {
+          type: 'string',
+          description: 'Filter by device class: WINDOWS_SERVER, WINDOWS_WORKSTATION, LINUX_SERVER, LINUX_WORKSTATION, MAC, etc.'
+        },
+        organizationId: {
+          type: 'number',
+          description: 'Filter by organization ID'
+        },
+        status: {
+          type: 'string',
+          enum: ['INSTALLED', 'UNINSTALLED'],
+          description: 'Filter by software status (default: INSTALLED)'
+        },
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response'
         }
       },
       required: []

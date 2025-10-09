@@ -21,7 +21,10 @@ import {
   ExtendedCustomField,
   // Phase 2 types
   AdvancedDeviceQueryParams,
-  AdvancedDeviceQueryResponse
+  AdvancedDeviceQueryResponse,
+  SoftwareInventoryQueryParams,
+  SoftwareInventoryQueryResponse,
+  SoftwareInstallation
 } from './types';
 import { config } from '../config';
 
@@ -496,6 +499,115 @@ export class NinjaOneClient {
         success: false,
         details: {
           df: params?.df || 'none',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+      throw error;
+    }
+  }
+/**
+   * Query software inventory across devices
+   * Searches for installed software with advanced filtering
+   */
+  async querySoftwareInventory(params?: SoftwareInventoryQueryParams): Promise<SoftwareInventoryQueryResponse> {
+    try {
+      const queryString = new URLSearchParams();
+      if (params?.softwareName) queryString.append('softwareName', params.softwareName);
+      if (params?.deviceClass) queryString.append('df', `class=${params.deviceClass}`);
+      if (params?.organizationId) {
+        const existingDf = queryString.get('df');
+        const orgFilter = `org=${params.organizationId}`;
+        if (existingDf) {
+          queryString.set('df', `${existingDf} AND ${orgFilter}`);
+        } else {
+          queryString.append('df', orgFilter);
+        }
+      }
+      if (params?.status) queryString.append('status', params.status);
+      if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+      if (params?.after) queryString.append('after', params.after);
+
+      const endpoint = `/v2/queries/software${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+      logger.debug(`Querying software inventory: ${params?.softwareName || 'all software'}`);
+
+      const response = await this.request<{ results: any[] }>(endpoint);
+
+      const installations: SoftwareInstallation[] = (response.results || []).map((item: any) => ({
+        deviceId: item.deviceId,
+        deviceName: item.deviceName,
+        organizationId: item.organizationId,
+        organizationName: item.organizationName,
+        softwareName: item.name,
+        softwareVersion: item.version || 'Unknown',
+        softwarePublisher: item.publisher || 'Unknown',
+        installDate: item.installDate,
+        deviceClass: item.deviceClass,
+        status: item.status || 'INSTALLED'
+      })) || [];
+
+      // Build summary statistics
+      const summary = {
+        uniqueDevices: new Set(installations.map(i => i.deviceId)).size,
+        uniqueSoftwareNames: new Set(installations.map(i => i.softwareName)).size,
+        byDeviceClass: {} as Record<string, number>,
+        byOrganization: {} as Record<number, { name: string; count: number }>,
+        byVersion: {} as Record<string, number>,
+        byPublisher: {} as Record<string, number>
+      };
+
+      installations.forEach(installation => {
+        // Count by device class
+        summary.byDeviceClass[installation.deviceClass] = 
+          (summary.byDeviceClass[installation.deviceClass] || 0) + 1;
+
+        // Count by organization
+        if (!summary.byOrganization[installation.organizationId]) {
+          summary.byOrganization[installation.organizationId] = {
+            name: installation.organizationName || `Org ${installation.organizationId}`,
+            count: 0
+          };
+        }
+        summary.byOrganization[installation.organizationId].count++;
+
+        // Count by version
+        summary.byVersion[installation.softwareVersion] = 
+          (summary.byVersion[installation.softwareVersion] || 0) + 1;
+
+        // Count by publisher
+        summary.byPublisher[installation.softwarePublisher] = 
+          (summary.byPublisher[installation.softwarePublisher] || 0) + 1;
+      });
+
+      const result: SoftwareInventoryQueryResponse = {
+        data: installations,
+        metadata: {
+          pageSize: params?.pageSize || installations.length,
+          after: undefined, // NinjaOne API may not provide pagination cursor
+          totalReturned: installations.length
+        },
+        summary
+      };
+
+      await this.auditLog({
+        action: 'query_software_inventory',
+        success: true,
+        details: {
+          softwareName: params?.softwareName || 'all',
+          deviceClass: params?.deviceClass || 'all',
+          organizationId: params?.organizationId || 'all',
+          resultsFound: installations.length,
+          uniqueDevices: summary.uniqueDevices
+        }
+      });
+
+      return result;
+    } catch (error) {
+      logger.error('Failed to query software inventory:', error);
+      await this.auditLog({
+        action: 'query_software_inventory',
+        success: false,
+        details: {
+          softwareName: params?.softwareName || 'all',
           error: error instanceof Error ? error.message : 'Unknown error'
         }
       });

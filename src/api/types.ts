@@ -340,3 +340,43 @@ export interface AdvancedDeviceQueryResponse {
     offlineCount: number;
   };
 }
+
+// Software Inventory Query Types
+export interface SoftwareInventoryQueryParams {
+  softwareName?: string;          // Software name to search for
+  deviceClass?: string;            // Filter by device class (WINDOWS_WORKSTATION, etc.)
+  organizationId?: number;         // Filter by organization
+  status?: 'INSTALLED' | 'UNINSTALLED'; // Software status
+  pageSize?: number;
+  after?: string;
+}
+
+export interface SoftwareInstallation {
+  deviceId: number;
+  deviceName: string;
+  organizationId: number;
+  organizationName?: string;
+  softwareName: string;
+  softwareVersion: string;
+  softwarePublisher: string;
+  installDate?: number;           // Unix timestamp
+  deviceClass: string;
+  status: 'INSTALLED' | 'UNINSTALLED';
+}
+
+export interface SoftwareInventoryQueryResponse {
+  data: SoftwareInstallation[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalReturned: number;
+  };
+  summary: {
+    uniqueDevices: number;
+    uniqueSoftwareNames: number;
+    byDeviceClass: Record<string, number>;
+    byOrganization: Record<number, { name: string; count: number }>;
+    byVersion: Record<string, number>;
+    byPublisher: Record<string, number>;
+  };
+}

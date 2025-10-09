@@ -399,6 +399,49 @@ export class NinjaOneMCPServer {
         };
       }
 
+      case 'ninjaone_query_software_inventory': {
+        const response = await this.ninjaClient.querySoftwareInventory({
+          softwareName: args.softwareName,
+          deviceClass: args.deviceClass,
+          organizationId: args.organizationId,
+          status: args.status,
+          pageSize: args.pageSize || 100,
+          after: args.after
+        });
+
+        // Format response with rich summary
+        return {
+          summary: {
+            totalInstallations: response.metadata.totalReturned,
+            uniqueDevices: response.summary.uniqueDevices,
+            uniqueSoftwareNames: response.summary.uniqueSoftwareNames,
+            byDeviceClass: response.summary.byDeviceClass,
+            topVersions: Object.entries(response.summary.byVersion)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 10)
+              .map(([version, count]) => ({ version, count })),
+            topPublishers: Object.entries(response.summary.byPublisher)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 10)
+              .map(([publisher, count]) => ({ publisher, count })),
+            organizationBreakdown: Object.values(response.summary.byOrganization)
+              .sort((a, b) => b.count - a.count)
+              .slice(0, 10)
+          },
+          installations: response.data,
+          pagination: {
+            hasMore: !!response.metadata.after,
+            nextCursor: response.metadata.after,
+            pageSize: response.metadata.pageSize
+          },
+          searchCriteria: {
+            softwareName: args.softwareName || 'all',
+            deviceClass: args.deviceClass || 'all',
+            organizationId: args.organizationId || 'all'
+          }
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }

@@ -24,7 +24,10 @@ import {
   AdvancedDeviceQueryResponse,
   SoftwareInventoryQueryParams,
   SoftwareInventoryQueryResponse,
-  SoftwareInstallation
+  SoftwareInstallation,
+  AdvancedActivityQueryParams,
+  AdvancedActivityQueryResponse,
+  EnhancedActivity
 } from './types';
 import { config } from '../config';
 
@@ -608,6 +611,159 @@ export class NinjaOneClient {
         success: false,
         details: {
           softwareName: params?.softwareName || 'all',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Query activities with advanced filtering including date ranges.
+   * Enhances the Phase 1 getActivities with date range support and rich summaries.
+   * 
+   * @param params Query parameters including deviceId, organizationId, type, date range
+   * @returns AdvancedActivityQueryResponse with activities, metadata, and summary statistics
+   */
+  async queryActivitiesAdvanced(params?: AdvancedActivityQueryParams): Promise<AdvancedActivityQueryResponse> {
+    try {
+      const queryString = new URLSearchParams();
+      if (params?.deviceId) queryString.append('deviceId', params.deviceId.toString());
+      if (params?.organizationId) queryString.append('organizationId', params.organizationId.toString());
+      if (params?.type) queryString.append('type', params.type);
+      if (params?.startDate) queryString.append('startDate', params.startDate);
+      if (params?.endDate) queryString.append('endDate', params.endDate);
+      if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+      if (params?.after) queryString.append('after', params.after);
+
+      const endpoint = `/v2/activities${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+      logger.debug(`Querying activities with params: ${JSON.stringify(params || {})}`);
+      
+      const apiResponse = await this.request<any>(endpoint);
+      
+      // Handle both array and paginated response formats
+      let activities: Activity[];
+      let pageToken: string | undefined;
+      
+      if (Array.isArray(apiResponse)) {
+        activities = apiResponse;
+      } else if (apiResponse && typeof apiResponse === 'object') {
+        // Handle paginated response
+        activities = apiResponse.activities || apiResponse.data || apiResponse.results || [];
+        pageToken = apiResponse.pageToken || apiResponse.nextPageToken || apiResponse.after;
+      } else {
+        logger.warn('Unexpected API response format:', apiResponse);
+        activities = [];
+      }
+      
+      // Enhance activities with additional context if needed
+      const enhancedActivities: EnhancedActivity[] = activities.map(activity => ({
+        ...activity,
+        // deviceName and organizationName might come from API or need to be fetched
+        deviceName: activity.deviceId ? `Device ${activity.deviceId}` : undefined,
+        organizationName: activity.organizationId ? `Org ${activity.organizationId}` : undefined
+      }));
+
+      // Build summary statistics
+      const summary = {
+        totalActivities: enhancedActivities.length,
+        byType: {} as Record<string, number>,
+        byStatus: {} as Record<string, number>,
+        byDevice: {} as Record<number, { name: string; count: number }>,
+        byOrganization: {} as Record<number, { name: string; count: number }>,
+        dateRange: {
+          earliest: '',
+          latest: ''
+        }
+      };
+
+      let earliestDate: Date | null = null;
+      let latestDate: Date | null = null;
+
+      enhancedActivities.forEach(activity => {
+        // Count by type
+        summary.byType[activity.type] = (summary.byType[activity.type] || 0) + 1;
+
+        // Count by status
+        summary.byStatus[activity.status] = (summary.byStatus[activity.status] || 0) + 1;
+
+        // Count by device
+        if (activity.deviceId) {
+          if (!summary.byDevice[activity.deviceId]) {
+            summary.byDevice[activity.deviceId] = {
+              name: activity.deviceName || `Device ${activity.deviceId}`,
+              count: 0
+            };
+          }
+          summary.byDevice[activity.deviceId].count++;
+        }
+
+        // Count by organization
+        if (activity.organizationId) {
+          if (!summary.byOrganization[activity.organizationId]) {
+            summary.byOrganization[activity.organizationId] = {
+              name: activity.organizationName || `Org ${activity.organizationId}`,
+              count: 0
+            };
+          }
+          summary.byOrganization[activity.organizationId].count++;
+        }
+
+        // Track date range
+        const activityDate = new Date(activity.activityTime);
+        if (earliestDate === null || activityDate.getTime() < earliestDate.getTime()) {
+          earliestDate = activityDate;
+        }
+        if (latestDate === null || activityDate.getTime() > latestDate.getTime()) {
+          latestDate = activityDate;
+        }
+      });
+
+      // Set date range with explicit type assertions
+      if (earliestDate !== null) {
+        summary.dateRange.earliest = (earliestDate as Date).toISOString();
+      }
+      if (latestDate !== null) {
+        summary.dateRange.latest = (latestDate as Date).toISOString();
+      }
+
+      const response: AdvancedActivityQueryResponse = {
+        data: enhancedActivities,
+        metadata: {
+          pageSize: params?.pageSize || enhancedActivities.length,
+          after: pageToken, // Use pagination token from API response if available
+          totalReturned: enhancedActivities.length,
+          dateRange: params?.startDate && params?.endDate ? {
+            start: params.startDate,
+            end: params.endDate
+          } : undefined
+        },
+        summary
+      };
+
+      await this.auditLog({
+        action: 'query_activities_advanced',
+        success: true,
+        deviceId: params?.deviceId,
+        organizationId: params?.organizationId,
+        details: {
+          type: params?.type || 'all',
+          startDate: params?.startDate || 'none',
+          endDate: params?.endDate || 'none',
+          activitiesFound: enhancedActivities.length,
+          uniqueTypes: Object.keys(summary.byType).length
+        }
+      });
+
+      return response;
+    } catch (error) {
+      logger.error('Failed to query activities with advanced filter:', error);
+      await this.auditLog({
+        action: 'query_activities_advanced',
+        success: false,
+        deviceId: params?.deviceId,
+        organizationId: params?.organizationId,
+        details: {
           error: error instanceof Error ? error.message : 'Unknown error'
         }
       });

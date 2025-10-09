@@ -380,3 +380,43 @@ export interface SoftwareInventoryQueryResponse {
     byPublisher: Record<string, number>;
   };
 }
+
+// Advanced Activity Query Types
+export interface AdvancedActivityQueryParams {
+  deviceId?: number;              // Filter by specific device
+  organizationId?: number;         // Filter by organization
+  type?: string;                   // Filter by activity type
+  startDate?: string;              // ISO date string for range start (e.g., "2024-01-01T00:00:00Z")
+  endDate?: string;                // ISO date string for range end (e.g., "2024-12-31T23:59:59Z")
+  pageSize?: number;
+  after?: string;
+}
+
+export interface EnhancedActivity extends Activity {
+  deviceName?: string;
+  organizationName?: string;
+}
+
+export interface AdvancedActivityQueryResponse {
+  data: EnhancedActivity[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalReturned: number;
+    dateRange?: {
+      start: string;
+      end: string;
+    };
+  };
+  summary: {
+    totalActivities: number;
+    byType: Record<string, number>;
+    byStatus: Record<string, number>;
+    byDevice: Record<number, { name: string; count: number }>;
+    byOrganization: Record<number, { name: string; count: number }>;
+    dateRange: {
+      earliest: string;
+      latest: string;
+    };
+  };
+}

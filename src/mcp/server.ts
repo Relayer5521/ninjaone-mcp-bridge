@@ -442,6 +442,56 @@ export class NinjaOneMCPServer {
         };
       }
 
+      case 'ninjaone_query_activities_advanced': {
+        const response = await this.ninjaClient.queryActivitiesAdvanced({
+          deviceId: args.deviceId,
+          organizationId: args.organizationId,
+          type: args.type,
+          startDate: args.startDate,
+          endDate: args.endDate,
+          pageSize: args.pageSize || 100,
+          after: args.after
+        });
+
+        // Format response with rich summary
+        return {
+          summary: {
+            totalActivities: response.summary.totalActivities,
+            byType: response.summary.byType,
+            byStatus: response.summary.byStatus,
+            topDevices: Object.entries(response.summary.byDevice)
+              .sort((a, b) => b[1].count - a[1].count)
+              .slice(0, 10)
+              .map(([deviceId, info]) => ({
+                deviceId: Number(deviceId),
+                deviceName: info.name,
+                activityCount: info.count
+              })),
+            topOrganizations: Object.entries(response.summary.byOrganization)
+              .sort((a, b) => b[1].count - a[1].count)
+              .slice(0, 10)
+              .map(([orgId, info]) => ({
+                organizationId: Number(orgId),
+                organizationName: info.name,
+                activityCount: info.count
+              })),
+            dateRange: response.summary.dateRange
+          },
+          activities: response.data,
+          pagination: {
+            hasMore: !!response.metadata.after,
+            nextCursor: response.metadata.after,
+            pageSize: response.metadata.pageSize
+          },
+          filterApplied: {
+            deviceId: args.deviceId || 'all',
+            organizationId: args.organizationId || 'all',
+            type: args.type || 'all',
+            dateRange: response.metadata.dateRange || 'not specified'
+          }
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }

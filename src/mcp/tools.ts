@@ -436,5 +436,65 @@ Returns detailed installation data including:
       },
       required: []
     }
+  },
+  {
+    name: 'ninjaone_query_activities_advanced',
+    description: `Query activity logs with advanced filtering including date ranges and enhanced context.
+
+Enhances the Phase 1 activities tool with:
+- Date range filtering (startDate, endDate) for historical queries
+- Organization-wide activity monitoring
+- Rich summary statistics with type and status breakdowns
+- Activity timeline with earliest/latest timestamps
+
+Use Cases:
+- "Show me all activities from last week"
+- "What happened on device X between January 1 and January 31?"
+- "List all patch activities from the past 24 hours"
+- "Show organization-wide activities for the last month"
+- "Find all failed activities in the last 7 days"
+
+Returns comprehensive activity data including:
+- Activity timeline with timestamps
+- Summary statistics by type, status, device, and organization
+- Date range information (earliest and latest activity)
+- Pagination support for large result sets`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        deviceId: {
+          type: 'number',
+          description: 'Filter by specific device ID (optional)'
+        },
+        organizationId: {
+          type: 'number',
+          description: 'Filter by organization ID (optional)'
+        },
+        type: {
+          type: 'string',
+          description: 'Filter by activity type (e.g., "PATCH", "SCRIPT", "REBOOT", "SOFTWARE_INSTALL") (optional)'
+        },
+        startDate: {
+          type: 'string',
+          description: 'Start date for range filter in ISO format (e.g., "2024-01-01T00:00:00Z") (optional)'
+        },
+        endDate: {
+          type: 'string',
+          description: 'End date for range filter in ISO format (e.g., "2024-12-31T23:59:59Z") (optional)'
+        },
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
   }
 ];

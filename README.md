@@ -1,6 +1,6 @@
 # NinjaOne MCP Bridge - Phase 2 In Progress 🚧
 
-Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Features OAuth 2.0 authentication, comprehensive error handling, audit logging, and 19 powerful tools for MSP operations (Phase 1 complete + Phase 2 Tool 1 implemented).
+Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Features OAuth 2.0 authentication, comprehensive error handling, audit logging, and 20 powerful tools for MSP operations (Phase 1 complete + 2 Phase 2 tools implemented).
 
 ## ✅ Testing Status
 
@@ -45,7 +45,7 @@ Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Fe
 - `ninjaone_get_scheduled_tasks` - Scheduled automation tasks
 - `ninjaone_get_custom_fields` - Custom field definitions
 
-### Phase 2 Tools (IN PROGRESS - 1/5 Complete)
+### Phase 2 Tools (IN PROGRESS - 2/5 Complete)
 - ✅ `ninjaone_query_devices_advanced` - **NEW!** Advanced device filtering with full df syntax support
   - Supports complex boolean logic (AND operators)
   - Filter by organization, location, role, class, status, online/offline, creation date, group
@@ -56,7 +56,17 @@ Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Fe
     - `"org=123 AND status=APPROVED"` - Approved devices in org 123
     - `"created after 2024-01-01"` - Devices created in 2024
     - `"class in (WINDOWS_WORKSTATION,MAC) AND online"` - Online workstations
-- ⏳ `ninjaone_query_software_inventory` - Coming soon
+- ✅ `ninjaone_query_software_inventory` - **NEW!** Software search across entire environment
+  - Search by software name with partial matching
+  - Filter by device class (WINDOWS_SERVER, WINDOWS_WORKSTATION, MAC, etc.)
+  - Filter by organization ID
+  - Filter by installation status (INSTALLED/UNINSTALLED)
+  - Rich summary statistics (unique devices, software counts, version distribution)
+  - **Usage Examples:**
+    - `"Find all devices with Chrome installed"`
+    - `"Which machines have Adobe Reader?"`
+    - `"Show me all servers with SQL Server installed"`
+    - `"List all software on Windows workstations"`
 - ⏳ `ninjaone_query_activities_advanced` - Coming soon
 - ⏳ `ninjaone_query_backup_status` - Coming soon
 - ⏳ `ninjaone_query_system_metrics` - Coming soon
@@ -140,6 +150,15 @@ See `CHECKPOINT_GUIDE.md` for complete instructions.
 "Get devices created in the last 30 days"
 "Show me all workstations that are offline"
 "Find devices in role 3"
+```
+
+### Software Inventory (Phase 2 - NEW!)
+```
+"Find all devices with Chrome installed"
+"Which machines have Adobe Reader?"
+"Show me all servers with SQL Server installed"
+"Find devices with Java installed in organization 5"
+"List all Microsoft Office installations"
 ```
 
 ### Device Health Monitoring

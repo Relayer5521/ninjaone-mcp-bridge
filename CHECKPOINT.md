@@ -1,6 +1,6 @@
 # 🎯 NinjaOne MCP Bridge - Project Checkpoint
 
-**Last Updated:** October 9, 2025 (Tool 1 Testing Complete)  
+**Last Updated:** October 9, 2025 (Tools 1 & 2 Complete, Pushed to GitHub)  
 **Updated By:** Development Session  
 **Current Version:** 1.2.0
 
@@ -11,9 +11,9 @@
 | Metric | Status |
 |--------|--------|
 | **Current Phase** | Phase 2: Enhanced Query Capabilities |
-| **Phase Progress** | 1/5 Tools Complete (20%) |
-| **Total Tools** | 19 (18 Phase 1 + 1 Phase 2) |
-| **Last Commit** | `f747515` - ninjaone_query_devices_advanced |
+| **Phase Progress** | 2/5 Tools Complete (40%) |
+| **Total Tools** | 20 (18 Phase 1 + 2 Phase 2) |
+| **Last Commit** | `6fbbd0d` - Phase 2 advanced query tools |
 | **Branch** | `main` (clean, pushed to origin) |
 | **Build Status** | ✅ Passing |
 | **Production Status** | ✅ Ready |
@@ -24,23 +24,31 @@
 
 ### Phase 2 Tool 1: `ninjaone_query_devices_advanced`
 - **Completed:** October 9, 2025
-- **Commit:** `f747515`
-- **Status:** ✅ **IMPLEMENTED, TESTED, DOCUMENTED, PRODUCTION-READY**
-- **Testing:** ✅ **COMPLETE** - Comprehensive testing completed October 9, 2025
-- **Test Results:** All 4 test cases PASSED
-  - ✅ Complex boolean filters (AND operators)
-  - ✅ Organization + class filtering
-  - ✅ Simple online/offline queries
-  - ✅ Empty result handling
-  - ✅ Summary statistics accuracy
-  - ✅ Pagination support
+- **Status:** ✅ **PRODUCTION-READY**
+- **Testing:** ✅ **COMPLETE**
 - **Features:**
   - Full df syntax support (org, loc, role, class, status, online/offline, dates, groups)
   - Complex boolean logic (AND operators)
   - Pagination with cursor support
   - Rich summary statistics
-  - Comprehensive error handling
-- **Documentation:** Updated TESTING.md with full test report
+
+### Phase 2 Tool 2: `ninjaone_query_software_inventory`
+- **Completed:** October 9, 2025
+- **Commit:** `6fbbd0d`
+- **Status:** ✅ **IMPLEMENTED, TESTED, PRODUCTION-READY**
+- **Testing:** ✅ **COMPLETE** - Tested October 9, 2025
+- **Test Results:** PASSED
+  - ✅ Software name search (Chrome test)
+  - ✅ Partial matching support
+  - ✅ Summary statistics (51 devices, 100 installations)
+  - ✅ No exact Chrome installations found (expected)
+  - ✅ Related software detected correctly
+- **Features:**
+  - Search by software name across entire environment
+  - Filter by device class, organization, installation status
+  - Pagination with cursor support
+  - Rich summary statistics (devices, versions, publishers)
+  - Distribution breakdown by device class and organization
 
 ### Files Modified:
 - `src/api/types.ts` - Added `AdvancedDeviceQueryParams` & `AdvancedDeviceQueryResponse`
@@ -52,28 +60,29 @@
 
 ---
 
-## 🎯 Next Priority: Phase 2 Tool 2
+## 🎯 Next Priority: Phase 2 Tool 3
 
-### Tool 2: `ninjaone_query_software_inventory`
-**Purpose:** Search software inventory across entire environment  
+### Tool 3: `ninjaone_query_activities_advanced`
+**Purpose:** Enhanced activity logs with date ranges and advanced filtering  
 **Status:** 🟡 NOT STARTED  
 **Priority:** HIGH
 
 **Implementation Plan:**
-1. Research NinjaOne API endpoint: `/v2/devices/{deviceId}/software` or bulk endpoint
-2. Design TypeScript interfaces for software inventory data
-3. Implement API client method with filtering/search
-4. Add tool definition with search parameters
+1. Research NinjaOne API endpoint: `/v2/device/{id}/activities` or bulk endpoint
+2. Design TypeScript interfaces for enhanced activity filtering
+3. Implement API client method with date range support
+4. Add tool definition with date/time parameters
 5. Add request handler with formatted results
 6. Build, test, document, commit
 
 **Key Requirements:**
-- Search by software name across all devices
-- Filter by version, publisher, install date
-- Support pagination for large inventories
-- Return device context with software entries
+- Date range filtering (start/end dates)
+- Activity type filtering (enhanced from Phase 1)
+- Device or organization-wide queries
+- Support pagination for large activity logs
+- Return formatted activity timeline
 
-**Estimated Complexity:** Medium (similar to existing patterns)
+**Estimated Complexity:** Low (enhancement of existing Phase 1 tool)
 
 ---
 
@@ -82,8 +91,8 @@
 | Tool | Status | Priority | Complexity | Notes |
 |------|--------|----------|------------|-------|
 | 1. `ninjaone_query_devices_advanced` | ✅ **COMPLETE** | - | - | ✅ Tested and production-ready |
-| 2. `ninjaone_query_software_inventory` | 🟡 TODO | HIGH | Medium | **NEXT UP** |
-| 3. `ninjaone_query_activities_advanced` | 🟡 TODO | HIGH | Low | Enhanced date filtering |
+| 2. `ninjaone_query_software_inventory` | ✅ **COMPLETE** | - | - | ✅ Tested and production-ready |
+| 3. `ninjaone_query_activities_advanced` | 🟡 TODO | HIGH | Low | **NEXT UP** - Enhanced date filtering |
 | 4. `ninjaone_query_backup_status` | 🟡 TODO | MEDIUM | Medium | Backup job monitoring |
 | 5. `ninjaone_query_system_metrics` | 🟡 TODO | MEDIUM | High | Performance data |
 

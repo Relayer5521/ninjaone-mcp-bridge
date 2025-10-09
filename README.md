@@ -105,6 +105,31 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 }
 ```
 
+## 📍 Project Checkpoint System
+
+This project uses a checkpoint system to seamlessly resume work across chat sessions.
+
+**Quick Resume:**
+```
+Read the following files and continue development:
+1. C:\MSP-Lab\ninjaone-mcp-bridge\CHECKPOINT.md
+2. C:\MSP-Lab\ninjaone-mcp-bridge\README.md
+```
+
+**Files:**
+- `CHECKPOINT.md` - Current project status, next priorities, blockers
+- `CHECKPOINT_GUIDE.md` - How to use and update the checkpoint system
+
+**When to Update:**
+- After completing each tool
+- When discovering blockers
+- Before ending work session
+- When switching major tasks
+
+See `CHECKPOINT_GUIDE.md` for complete instructions.
+
+---
+
 ## 🔍 Usage Examples
 
 ### Advanced Device Queries (Phase 2 - NEW!)

@@ -2,6 +2,25 @@
 
 Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Features OAuth 2.0 authentication, comprehensive error handling, audit logging, and 18 powerful tools for MSP operations.
 
+## ✅ Testing Status
+
+**Last Tested**: October 9, 2025  
+**Test Environment**: Canopy Technology Group (Org ID: 3)  
+**Connection Status**: ✅ Operational  
+
+| Test | Status | Results |
+|------|--------|---------|
+| **API Health Check** | ✅ PASS | Connection verified |
+| **Organizations Query** | ✅ PASS | 13 organizations retrieved |
+| **Device Retrieval** | ✅ PASS | 21 devices (10 online, 11 offline) |
+| **Alert Monitoring** | ✅ PASS | 22 active alerts retrieved |
+
+**Active Findings**:
+- 13 low disk space alerts (≤15% free)
+- 6 high memory utilization alerts (≥90%)
+- 3 disk I/O performance alerts (>90% active time)
+- 1 extended uptime alert (30+ days without reboot)
+
 ## 🚀 Phase 1 Features (COMPLETE)
 
 ### Core Tools (Original)

@@ -18,7 +18,7 @@ export class NinjaOneMCPServer {
     this.server = new Server(
       {
         name: 'ninjaone-mcp-bridge',
-        version: '1.1.0',
+        version: '1.2.0',
       },
       {
         capabilities: {
@@ -28,7 +28,7 @@ export class NinjaOneMCPServer {
     );
 
     this.setupHandlers();
-    logger.info('NinjaOne MCP Server initialized with Phase 1 tools');
+    logger.info('NinjaOne MCP Server initialized (Phase 1 + Phase 2 tools)');
   }
 
   private setupHandlers(): void {
@@ -370,6 +370,35 @@ export class NinjaOneMCPServer {
         };
       }
 
+      // ============ PHASE 2 TOOLS ============
+      case 'ninjaone_query_devices_advanced': {
+        const response = await this.ninjaClient.queryDevicesAdvanced({
+          df: args.df,
+          pageSize: args.pageSize || 100,
+          after: args.after
+        });
+
+        return {
+          summary: {
+            totalDevices: response.metadata.totalReturned,
+            online: response.summary.onlineCount,
+            offline: response.summary.offlineCount,
+            byClass: response.summary.byClass,
+            byApprovalStatus: response.summary.byApprovalStatus,
+            organizationBreakdown: Object.values(response.summary.byOrganization)
+              .sort((a, b) => b.count - a.count)
+              .slice(0, 10)  // Top 10 organizations
+          },
+          devices: response.data,
+          pagination: {
+            hasMore: !!response.metadata.after,
+            nextCursor: response.metadata.after,
+            pageSize: response.metadata.pageSize
+          },
+          filterApplied: args.df || 'none'
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -378,7 +407,7 @@ export class NinjaOneMCPServer {
   async start(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    logger.info('NinjaOne MCP Server started with Phase 1 tools');
+    logger.info('NinjaOne MCP Server started (Phase 1 + Phase 2 tools)');
   }
 }
 

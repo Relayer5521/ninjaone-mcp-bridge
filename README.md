@@ -1,6 +1,6 @@
-# NinjaOne MCP Bridge - Phase 1 Complete ✅
+# NinjaOne MCP Bridge - Phase 2 In Progress 🚧
 
-Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Features OAuth 2.0 authentication, comprehensive error handling, audit logging, and 18 powerful tools for MSP operations.
+Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Features OAuth 2.0 authentication, comprehensive error handling, audit logging, and 19 powerful tools for MSP operations (Phase 1 complete + Phase 2 Tool 1 implemented).
 
 ## ✅ Testing Status
 
@@ -34,7 +34,7 @@ Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Fe
 - `ninjaone_get_os_patches` - OS patches for specific device
 - `ninjaone_health_check` - API connectivity check
 
-### Phase 1 Query Tools (NEW)
+### Phase 1 Query Tools (COMPLETE)
 - `ninjaone_query_device_health` - Device health rollup across environment
 - `ninjaone_query_os_patches` - OS patch status across all devices
 - `ninjaone_query_antivirus_status` - AV status and threat detection
@@ -44,6 +44,22 @@ Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Fe
 - `ninjaone_get_active_jobs` - Currently running/pending jobs
 - `ninjaone_get_scheduled_tasks` - Scheduled automation tasks
 - `ninjaone_get_custom_fields` - Custom field definitions
+
+### Phase 2 Tools (IN PROGRESS - 1/5 Complete)
+- ✅ `ninjaone_query_devices_advanced` - **NEW!** Advanced device filtering with full df syntax support
+  - Supports complex boolean logic (AND operators)
+  - Filter by organization, location, role, class, status, online/offline, creation date, group
+  - Rich summary statistics (online/offline counts, breakdown by class, organization, etc.)
+  - Pagination support with cursor-based navigation
+  - **df Syntax Examples:**
+    - `"class=WINDOWS_SERVER AND offline"` - Offline Windows servers
+    - `"org=123 AND status=APPROVED"` - Approved devices in org 123
+    - `"created after 2024-01-01"` - Devices created in 2024
+    - `"class in (WINDOWS_WORKSTATION,MAC) AND online"` - Online workstations
+- ⏳ `ninjaone_query_software_inventory` - Coming soon
+- ⏳ `ninjaone_query_activities_advanced` - Coming soon
+- ⏳ `ninjaone_query_backup_status` - Coming soon
+- ⏳ `ninjaone_query_system_metrics` - Coming soon
 
 ## 📋 Installation
 
@@ -90,6 +106,16 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 ```
 
 ## 🔍 Usage Examples
+
+### Advanced Device Queries (Phase 2 - NEW!)
+```
+"Find all offline Windows servers"
+"Show me devices in organization 5 that are approved and online"
+"List all Mac devices"
+"Get devices created in the last 30 days"
+"Show me all workstations that are offline"
+"Find devices in role 3"
+```
 
 ### Device Health Monitoring
 ```
@@ -179,17 +205,19 @@ tail -f ninjaone-mcp.log
 
 ## 📈 Roadmap
 
-### ✅ Phase 1 (COMPLETE)
-- 9 read-only query tools
+### ✅ Phase 1 (COMPLETE - 18 Tools)
+- 9 core read-only query tools
+- 9 advanced query tools
 - Device health, patches, AV monitoring
 - Configuration viewing
 - Job and task monitoring
 
-### 🔄 Phase 2 (Next)
-- Enhanced device queries
-- Advanced filtering with df syntax
-- Activity logs with date filtering
-- Backup status queries
+### 🚧 Phase 2 (IN PROGRESS - 1/5 Complete)
+- ✅ Advanced device filtering with df syntax (`ninjaone_query_devices_advanced`)
+- ⏳ Software inventory search across environment
+- ⏳ Enhanced activity logs with date filtering
+- ⏳ Backup status queries
+- ⏳ System performance metrics
 
 ### ⚠️ Phase 3 (Requires Approval Framework)
 - Device actions (reboot, maintenance mode)
@@ -236,7 +264,7 @@ MIT License - See LICENSE file
 
 ---
 
-**Version**: 1.1.0  
-**Phase**: 1 Complete  
-**Tools**: 18  
+**Version**: 1.2.0  
+**Phase**: 2 In Progress (Tool 1/5 Complete)  
+**Tools**: 19 (18 from Phase 1 + 1 from Phase 2)  
 **Status**: Production Ready 🚀

@@ -334,5 +334,56 @@ export const tools: Tool[] = [
       },
       required: []
     }
+  },
+
+  // ============ PHASE 2 TOOLS ============
+  {
+    name: 'ninjaone_query_devices_advanced',
+    description: `Query devices with advanced filtering using NinjaOne's df (device filter) syntax. Supports complex boolean logic, field-specific queries, and comprehensive device filtering across your entire environment.
+
+df Syntax Examples:
+- Organization: "org=123", "org in (1,2,3)", "org!=5"
+- Location: "loc=456", "loc in (10,20)"
+- Device Role: "role=789", "role in (5,6,7)"
+- Device Class: "class=WINDOWS_SERVER", "class in (WINDOWS_WORKSTATION,MAC)"
+- Status: "status=APPROVED", "status=PENDING"
+- Online/Offline: "online", "offline"
+- Creation Date: "created after 2024-01-01", "created before 2024-12-31"
+- Group: "group 123"
+- Combined: "class=WINDOWS_SERVER AND offline", "org=5 AND status=APPROVED AND online"
+
+Available Device Classes:
+- WINDOWS_SERVER, WINDOWS_WORKSTATION
+- LINUX_SERVER, LINUX_WORKSTATION
+- MAC, MAC_SERVER
+- VMWARE_VM_HOST, VMWARE_VM_GUEST
+- NMS_* (network devices: SWITCH, ROUTER, FIREWALL, WAP, etc.)
+
+Use Cases:
+- "Find all offline Windows servers"
+- "List devices created in the last month"
+- "Show all pending approval devices"
+- "Get devices in organization 5 that are online"`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        df: {
+          type: 'string',
+          description: `Device filter using NinjaOne df syntax. Supports: org, loc, role, id, class, status, online/offline, created dates, group. Use AND to combine filters. Examples: "class=WINDOWS_SERVER AND offline", "org=123 AND online", "created after 2024-01-01"`
+        },
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
   }
 ];

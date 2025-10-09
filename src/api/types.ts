@@ -315,3 +315,28 @@ export interface CustomFieldsResponse {
     totalItems?: number;
   };
 }
+
+// ============ PHASE 2 TYPES ============
+
+// Advanced Device Query Types
+export interface AdvancedDeviceQueryParams {
+  df?: string;  // Device filter using NinjaOne df syntax
+  pageSize?: number;
+  after?: string;
+}
+
+export interface AdvancedDeviceQueryResponse {
+  data: Device[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalReturned: number;
+  };
+  summary: {
+    byOrganization: Record<number, { name: string; count: number }>;
+    byClass: Record<string, number>;
+    byApprovalStatus: Record<string, number>;
+    onlineCount: number;
+    offlineCount: number;
+  };
+}

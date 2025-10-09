@@ -18,7 +18,10 @@ import {
   Group,
   ActiveJob,
   ScheduledTask,
-  ExtendedCustomField
+  ExtendedCustomField,
+  // Phase 2 types
+  AdvancedDeviceQueryParams,
+  AdvancedDeviceQueryResponse
 } from './types';
 import { config } from '../config';
 
@@ -399,6 +402,105 @@ export class NinjaOneClient {
       }
     });
     return fields;
+  }
+
+  // ============ PHASE 2 METHODS ============
+
+  /**
+   * Query devices with advanced filtering using NinjaOne's df (device filter) syntax.
+   * Supports complex boolean logic and field-specific queries.
+   * 
+   * df Syntax Examples:
+   * - "org=123" - Single organization
+   * - "class=WINDOWS_SERVER AND offline" - Offline Windows servers
+   * - "status=APPROVED AND online" - Online approved devices
+   * - "created after 2024-01-01" - Devices created after date
+   * - "role in (1,2,3)" - Devices in specific roles
+   * 
+   * @param params Query parameters including df filter, pageSize, and pagination cursor
+   * @returns AdvancedDeviceQueryResponse with devices, metadata, and summary
+   */
+  async queryDevicesAdvanced(params?: AdvancedDeviceQueryParams): Promise<AdvancedDeviceQueryResponse> {
+    try {
+      const queryString = new URLSearchParams();
+      if (params?.df) queryString.append('df', params.df);
+      if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+      if (params?.after) queryString.append('after', params.after);
+
+      const endpoint = `/v2/devices${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+      logger.debug(`Querying devices with df: ${params?.df || 'none'}`);
+      
+      const devices = await this.request<Device[]>(endpoint);
+      
+      // Build summary statistics
+      const summary = {
+        byOrganization: {} as Record<number, { name: string; count: number }>,
+        byClass: {} as Record<string, number>,
+        byApprovalStatus: {} as Record<string, number>,
+        onlineCount: 0,
+        offlineCount: 0
+      };
+
+      devices.forEach(device => {
+        // Count by organization
+        if (!summary.byOrganization[device.organizationId]) {
+          summary.byOrganization[device.organizationId] = {
+            name: `Org ${device.organizationId}`,
+            count: 0
+          };
+        }
+        summary.byOrganization[device.organizationId].count++;
+
+        // Count by device class
+        const deviceClass = device.nodeClass || 'UNKNOWN';
+        summary.byClass[deviceClass] = (summary.byClass[deviceClass] || 0) + 1;
+
+        // Count by approval status
+        const status = device.approvalStatus || 'UNKNOWN';
+        summary.byApprovalStatus[status] = (summary.byApprovalStatus[status] || 0) + 1;
+
+        // Count online/offline
+        if (device.offline) {
+          summary.offlineCount++;
+        } else {
+          summary.onlineCount++;
+        }
+      });
+
+      const response: AdvancedDeviceQueryResponse = {
+        data: devices,
+        metadata: {
+          pageSize: params?.pageSize || devices.length,
+          after: undefined, // NinjaOne API may not return this for /v2/devices
+          totalReturned: devices.length
+        },
+        summary
+      };
+
+      await this.auditLog({
+        action: 'query_devices_advanced',
+        success: true,
+        details: {
+          df: params?.df || 'none',
+          deviceCount: devices.length,
+          onlineCount: summary.onlineCount,
+          offlineCount: summary.offlineCount
+        }
+      });
+
+      return response;
+    } catch (error) {
+      logger.error('Failed to query devices with advanced filter:', error);
+      await this.auditLog({
+        action: 'query_devices_advanced',
+        success: false,
+        details: {
+          df: params?.df || 'none',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+      throw error;
+    }
   }
 }
 

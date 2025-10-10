@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 import {
   Organization,
   Device,
@@ -28,8 +28,8 @@ import {
   AdvancedActivityQueryParams,
   AdvancedActivityQueryResponse,
   EnhancedActivity
-} from './types';
-import { config } from '../config';
+} from './types.js';
+import { config } from '../config.js';
 
 export class NinjaOneClient {
   private api: AxiosInstance;

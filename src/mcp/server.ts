@@ -4,9 +4,9 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { NinjaOneClient } from '../api/client';
-import { logger } from '../utils/logger';
-import { tools } from './tools';
+import { NinjaOneClient } from '../api/client.js';
+import { logger } from '../utils/logger.js';
+import { tools } from './tools.js';
 
 export class NinjaOneMCPServer {
   private server: Server;

@@ -1,5 +1,5 @@
-import { NinjaOneMCPServer } from './mcp/server';
-import { logger } from './utils/logger';
+import { NinjaOneMCPServer } from './mcp/server.js';
+import { logger } from './utils/logger.js';
 
 async function main() {
   try {

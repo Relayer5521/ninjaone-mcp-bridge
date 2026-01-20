@@ -420,3 +420,68 @@ export interface AdvancedActivityQueryResponse {
     };
   };
 }
+
+// Backup Status Query Types
+export interface BackupStatusQueryParams {
+  deviceId?: number;              // Filter by specific device
+  organizationId?: number;         // Filter by organization
+  status?: 'SUCCESS' | 'FAILED' | 'RUNNING' | 'WARNING' | 'NEVER_RUN'; // Filter by backup status
+  backupType?: 'FULL' | 'INCREMENTAL' | 'DIFFERENTIAL'; // Filter by backup type
+  df?: string;                     // Device filter using NinjaOne df syntax for advanced filtering
+  pageSize?: number;
+  after?: string;
+}
+
+export interface BackupJobStatus {
+  deviceId: number;
+  deviceName: string;
+  organizationId: number;
+  organizationName: string;
+  deviceClass: string;
+  backupEnabled: boolean;
+  lastBackupStatus: 'SUCCESS' | 'FAILED' | 'RUNNING' | 'WARNING' | 'NEVER_RUN';
+  lastBackupTime?: string;         // ISO date string of last backup
+  nextScheduledBackup?: string;    // ISO date string of next scheduled backup
+  backupType?: 'FULL' | 'INCREMENTAL' | 'DIFFERENTIAL';
+  backupDuration?: number;         // Duration in seconds
+  backupSize?: number;             // Size in bytes
+  retentionDays?: number;          // Retention period in days
+  backupPolicy?: string;           // Name of the backup policy applied
+  failureReason?: string;          // Reason for failure if status is FAILED
+  consecutiveFailures?: number;    // Number of consecutive failures
+  lastSuccessfulBackup?: string;   // ISO date string of last successful backup
+}
+
+export interface BackupStatusQueryResponse {
+  data: BackupJobStatus[];
+  metadata: {
+    pageSize: number;
+    after?: string;
+    totalReturned: number;
+  };
+  summary: {
+    totalDevices: number;
+    protectedDevices: number;       // Devices with backup enabled
+    unprotectedDevices: number;     // Devices without backup
+    byStatus: {
+      success: number;
+      failed: number;
+      running: number;
+      warning: number;
+      neverRun: number;
+    };
+    byBackupType: Record<string, number>;
+    byOrganization: Record<number, { name: string; protected: number; unprotected: number }>;
+    byDeviceClass: Record<string, { total: number; protected: number }>;
+    complianceMetrics: {
+      protectionRate: number;       // Percentage of devices protected (0-100)
+      successRate: number;           // Percentage of successful backups (0-100)
+      devicesWithRecentBackup: number; // Devices backed up in last 24 hours
+      devicesRequiringAttention: number; // Devices with failed or warning status
+    };
+    dateRange: {
+      oldestBackup?: string;        // Oldest backup time found
+      newestBackup?: string;        // Most recent backup time found
+    };
+  };
+}

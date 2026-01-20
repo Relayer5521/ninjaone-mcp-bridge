@@ -492,6 +492,78 @@ export class NinjaOneMCPServer {
         };
       }
 
+      case 'ninjaone_query_backup_status': {
+        const response = await this.ninjaClient.queryBackupStatus({
+          deviceId: args.deviceId,
+          organizationId: args.organizationId,
+          status: args.status,
+          backupType: args.backupType,
+          df: args.df,
+          pageSize: args.pageSize || 100,
+          after: args.after
+        });
+
+        // Format response with rich compliance summary
+        return {
+          complianceSummary: {
+            totalDevices: response.summary.totalDevices,
+            protectedDevices: response.summary.protectedDevices,
+            unprotectedDevices: response.summary.unprotectedDevices,
+            protectionRate: `${response.summary.complianceMetrics.protectionRate}%`,
+            successRate: `${response.summary.complianceMetrics.successRate}%`,
+            devicesWithRecentBackup: response.summary.complianceMetrics.devicesWithRecentBackup,
+            devicesRequiringAttention: response.summary.complianceMetrics.devicesRequiringAttention
+          },
+          statusBreakdown: {
+            successful: response.summary.byStatus.success,
+            failed: response.summary.byStatus.failed,
+            running: response.summary.byStatus.running,
+            warning: response.summary.byStatus.warning,
+            neverRun: response.summary.byStatus.neverRun
+          },
+          backupTypeDistribution: response.summary.byBackupType,
+          topOrganizations: Object.entries(response.summary.byOrganization)
+            .sort((a, b) => (b[1].protected + b[1].unprotected) - (a[1].protected + a[1].unprotected))
+            .slice(0, 10)
+            .map(([orgId, info]) => ({
+              organizationId: Number(orgId),
+              organizationName: info.name,
+              protectedDevices: info.protected,
+              unprotectedDevices: info.unprotected,
+              protectionRate: info.protected + info.unprotected > 0
+                ? `${Math.round((info.protected / (info.protected + info.unprotected)) * 100)}%`
+                : '0%'
+            })),
+          deviceClassBreakdown: Object.entries(response.summary.byDeviceClass)
+            .map(([deviceClass, stats]) => ({
+              deviceClass,
+              totalDevices: stats.total,
+              protectedDevices: stats.protected,
+              protectionRate: stats.total > 0
+                ? `${Math.round((stats.protected / stats.total) * 100)}%`
+                : '0%'
+            }))
+            .sort((a, b) => b.totalDevices - a.totalDevices),
+          dateRange: {
+            oldestBackup: response.summary.dateRange.oldestBackup || 'N/A',
+            newestBackup: response.summary.dateRange.newestBackup || 'N/A'
+          },
+          backupJobs: response.data,
+          pagination: {
+            hasMore: !!response.metadata.after,
+            nextCursor: response.metadata.after,
+            pageSize: response.metadata.pageSize
+          },
+          filterApplied: {
+            deviceId: args.deviceId || 'all',
+            organizationId: args.organizationId || 'all',
+            status: args.status || 'all',
+            backupType: args.backupType || 'all',
+            df: args.df || 'not specified'
+          }
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -501,6 +573,36 @@ export class NinjaOneMCPServer {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     logger.info('NinjaOne MCP Server started (Phase 1 + Phase 2 tools)');
+  }
+
+  // Public method to list tools (for HTTP transport)
+  async listTools(): Promise<typeof tools> {
+    return tools;
+  }
+
+  // Public method to call a tool (for HTTP transport)
+  async callTool(name: string, args: any): Promise<any> {
+    try {
+      const result = await this.handleToolCall(name, args);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: typeof result === 'string' ? result : JSON.stringify(result, null, 2)
+          }
+        ]
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+          }
+        ],
+        isError: true
+      };
+    }
   }
 }
 

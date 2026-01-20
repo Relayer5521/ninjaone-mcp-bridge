@@ -45,7 +45,7 @@ Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Fe
 - `ninjaone_get_scheduled_tasks` - Scheduled automation tasks
 - `ninjaone_get_custom_fields` - Custom field definitions
 
-### Phase 2 Tools (IN PROGRESS - 3/5 Complete)
+### Phase 2 Tools (IN PROGRESS - 4/5 Complete)
 - ✅ `ninjaone_query_devices_advanced` - **COMPLETE!** Advanced device filtering with full df syntax support
   - Supports complex boolean logic (AND operators)
   - Filter by organization, location, role, class, status, online/offline, creation date, group
@@ -80,7 +80,32 @@ Production-ready MCP server for NinjaOne RMM integration with Claude Desktop. Fe
     - `"List all patch activities from the past 24 hours"`
     - `"Show organization-wide activities for the last month"`
     - `"Find all failed activities in the last 7 days"`
-- ⏳ `ninjaone_query_backup_status` - Coming soon
+- ✅ `ninjaone_query_backup_status` - **COMPLETE!** ⚠️ **REQUIRES API ENDPOINT VERIFICATION**
+  - **Status**: Implementation complete, endpoint verification pending
+  - **Warning**: The endpoint `/v2/queries/backup-status` must be verified in NinjaOne API docs
+  - Comprehensive backup monitoring with compliance metrics
+  - Filter by device, organization, status (SUCCESS/FAILED/WARNING/NEVER_RUN), backup type
+  - Advanced filtering with df syntax support
+  - Rich compliance summary (protection rate, success rate, devices needing attention)
+  - Detailed backup job status tracking (last backup time, next scheduled, duration, size)
+  - Consecutive failure tracking and failure reason reporting
+  - **Compliance Metrics:**
+    - Protection rate (% of devices with backup enabled)
+    - Success rate (% of successful backups)
+    - Devices with recent backup (last 24 hours)
+    - Devices requiring attention (failed/warning/never run)
+  - **Summary Statistics:**
+    - Status breakdown (success/failed/running/warning/never run)
+    - Backup type distribution (FULL/INCREMENTAL/DIFFERENTIAL)
+    - Organization breakdown (protected vs unprotected devices)
+    - Device class breakdown with protection rates
+  - **Usage Examples:**
+    - `"Show me all devices with failed backups"`
+    - `"What's our backup protection rate across all organizations?"`
+    - `"Which devices haven't been backed up in the last 24 hours?"`
+    - `"Find all servers with backup failures"`
+    - `"Get backup status for organization 5"`
+    - `"Show devices requiring backup attention"`
 - ⏳ `ninjaone_query_system_metrics` - Coming soon
 
 ## 📋 Installation

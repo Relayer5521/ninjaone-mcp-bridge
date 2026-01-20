@@ -27,7 +27,10 @@ import {
   SoftwareInstallation,
   AdvancedActivityQueryParams,
   AdvancedActivityQueryResponse,
-  EnhancedActivity
+  EnhancedActivity,
+  BackupStatusQueryParams,
+  BackupStatusQueryResponse,
+  BackupJobStatus
 } from './types.js';
 import { config } from '../config.js';
 
@@ -75,16 +78,27 @@ export class NinjaOneClient {
     );
   }
 
+  private getOAuthUrl(): string {
+    // NinjaOne OAuth endpoint is on app.ninjarmm.com, not api.ninjarmm.com
+    const oauthUrls: Record<string, string> = {
+      'US': 'https://app.ninjarmm.com',
+      'EU': 'https://eu.ninjarmm.com',
+      'AU': 'https://oc.ninjarmm.com'
+    };
+    return oauthUrls[config.ninjaone.region] || oauthUrls['US'];
+  }
+
   private async ensureAuthenticated(): Promise<void> {
     if (this.accessToken && this.tokenExpiresAt && this.tokenExpiresAt > new Date()) {
       return;
     }
 
     logger.info('Authenticating with NinjaOne API...');
-    
+
     try {
+      const oauthBaseUrl = this.getOAuthUrl();
       const response = await axios.post(
-        `${config.ninjaone.apiUrl}/oauth/token`,
+        `${oauthBaseUrl}/ws/oauth/token`,
         new URLSearchParams({
           grant_type: 'client_credentials',
           client_id: config.ninjaone.clientId,
@@ -765,6 +779,246 @@ export class NinjaOneClient {
         organizationId: params?.organizationId,
         details: {
           error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Query backup status across devices with advanced filtering.
+   * Monitors backup job status, compliance, and protection rates.
+   * 
+   * IMPORTANT: This endpoint must be verified in NinjaOne API documentation.
+   * Expected endpoint: /v2/queries/backup-status or /v2/backups
+   * 
+   * @param params Query parameters including deviceId, organizationId, status filter, df syntax
+   * @returns BackupStatusQueryResponse with backup jobs, metadata, and compliance metrics
+   */
+  async queryBackupStatus(params?: BackupStatusQueryParams): Promise<BackupStatusQueryResponse> {
+    try {
+      const queryString = new URLSearchParams();
+      
+      // Build query string based on parameters
+      if (params?.deviceId) queryString.append('deviceId', params.deviceId.toString());
+      if (params?.organizationId) queryString.append('organizationId', params.organizationId.toString());
+      if (params?.status) queryString.append('status', params.status);
+      if (params?.backupType) queryString.append('backupType', params.backupType);
+      if (params?.df) queryString.append('df', params.df);
+      if (params?.pageSize) queryString.append('pageSize', params.pageSize.toString());
+      if (params?.after) queryString.append('after', params.after);
+
+      // WARNING: Verify this endpoint exists in NinjaOne API documentation
+      // Alternative endpoints to check: /v2/backups, /v2/device/{id}/backup
+      const endpoint = `/v2/queries/backup-status${queryString.toString() ? `?${queryString.toString()}` : ''}`;
+      logger.debug(`Querying backup status with params: ${JSON.stringify(params || {})}`);
+      
+      const apiResponse = await this.request<any>(endpoint);
+      
+      // Handle both array and paginated response formats
+      let backupJobs: any[];
+      let pageToken: string | undefined;
+      
+      if (Array.isArray(apiResponse)) {
+        backupJobs = apiResponse;
+      } else if (apiResponse && typeof apiResponse === 'object') {
+        backupJobs = apiResponse.backups || apiResponse.data || apiResponse.results || [];
+        pageToken = apiResponse.pageToken || apiResponse.nextPageToken || apiResponse.after;
+      } else {
+        logger.warn('Unexpected API response format for backup status:', apiResponse);
+        backupJobs = [];
+      }
+
+      // Transform API response to BackupJobStatus format
+      const backupData: BackupJobStatus[] = backupJobs.map((job: any) => ({
+        deviceId: job.deviceId,
+        deviceName: job.deviceName || `Device ${job.deviceId}`,
+        organizationId: job.organizationId,
+        organizationName: job.organizationName || `Org ${job.organizationId}`,
+        deviceClass: job.deviceClass || 'UNKNOWN',
+        backupEnabled: job.backupEnabled ?? true,
+        lastBackupStatus: job.lastBackupStatus || 'NEVER_RUN',
+        lastBackupTime: job.lastBackupTime,
+        nextScheduledBackup: job.nextScheduledBackup,
+        backupType: job.backupType,
+        backupDuration: job.backupDuration,
+        backupSize: job.backupSize,
+        retentionDays: job.retentionDays,
+        backupPolicy: job.backupPolicy,
+        failureReason: job.failureReason,
+        consecutiveFailures: job.consecutiveFailures || 0,
+        lastSuccessfulBackup: job.lastSuccessfulBackup
+      }));
+
+      // Build comprehensive summary statistics
+      const summary = {
+        totalDevices: backupData.length,
+        protectedDevices: 0,
+        unprotectedDevices: 0,
+        byStatus: {
+          success: 0,
+          failed: 0,
+          running: 0,
+          warning: 0,
+          neverRun: 0
+        },
+        byBackupType: {} as Record<string, number>,
+        byOrganization: {} as Record<number, { name: string; protected: number; unprotected: number }>,
+        byDeviceClass: {} as Record<string, { total: number; protected: number }>,
+        complianceMetrics: {
+          protectionRate: 0,
+          successRate: 0,
+          devicesWithRecentBackup: 0,
+          devicesRequiringAttention: 0
+        },
+        dateRange: {
+          oldestBackup: undefined as string | undefined,
+          newestBackup: undefined as string | undefined
+        }
+      };
+
+      let oldestBackupTime: Date | null = null;
+      let newestBackupTime: Date | null = null;
+      const now = new Date();
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      backupData.forEach(backup => {
+        // Count protected vs unprotected
+        if (backup.backupEnabled) {
+          summary.protectedDevices++;
+        } else {
+          summary.unprotectedDevices++;
+        }
+
+        // Count by status
+        switch (backup.lastBackupStatus) {
+          case 'SUCCESS':
+            summary.byStatus.success++;
+            break;
+          case 'FAILED':
+            summary.byStatus.failed++;
+            summary.complianceMetrics.devicesRequiringAttention++;
+            break;
+          case 'RUNNING':
+            summary.byStatus.running++;
+            break;
+          case 'WARNING':
+            summary.byStatus.warning++;
+            summary.complianceMetrics.devicesRequiringAttention++;
+            break;
+          case 'NEVER_RUN':
+            summary.byStatus.neverRun++;
+            summary.complianceMetrics.devicesRequiringAttention++;
+            break;
+        }
+
+        // Count by backup type
+        if (backup.backupType) {
+          summary.byBackupType[backup.backupType] = 
+            (summary.byBackupType[backup.backupType] || 0) + 1;
+        }
+
+        // Count by organization
+        if (!summary.byOrganization[backup.organizationId]) {
+          summary.byOrganization[backup.organizationId] = {
+            name: backup.organizationName,
+            protected: 0,
+            unprotected: 0
+          };
+        }
+        if (backup.backupEnabled) {
+          summary.byOrganization[backup.organizationId].protected++;
+        } else {
+          summary.byOrganization[backup.organizationId].unprotected++;
+        }
+
+        // Count by device class
+        if (!summary.byDeviceClass[backup.deviceClass]) {
+          summary.byDeviceClass[backup.deviceClass] = {
+            total: 0,
+            protected: 0
+          };
+        }
+        summary.byDeviceClass[backup.deviceClass].total++;
+        if (backup.backupEnabled) {
+          summary.byDeviceClass[backup.deviceClass].protected++;
+        }
+
+        // Track recent backups (within 24 hours)
+        if (backup.lastBackupTime) {
+          const backupTime = new Date(backup.lastBackupTime);
+          if (backupTime >= twentyFourHoursAgo) {
+            summary.complianceMetrics.devicesWithRecentBackup++;
+          }
+
+          // Track date range
+          if (oldestBackupTime === null || backupTime < oldestBackupTime) {
+            oldestBackupTime = backupTime;
+          }
+          if (newestBackupTime === null || backupTime > newestBackupTime) {
+            newestBackupTime = backupTime;
+          }
+        }
+      });
+
+      // Calculate compliance metrics
+      if (summary.totalDevices > 0) {
+        summary.complianceMetrics.protectionRate = 
+          Math.round((summary.protectedDevices / summary.totalDevices) * 100);
+        
+        const successfulBackups = summary.byStatus.success;
+        const completedBackups = summary.totalDevices - summary.byStatus.neverRun - summary.byStatus.running;
+        if (completedBackups > 0) {
+          summary.complianceMetrics.successRate = 
+            Math.round((successfulBackups / completedBackups) * 100);
+        }
+      }
+
+      // Set date range with explicit type assertions
+      if (oldestBackupTime !== null) {
+        summary.dateRange.oldestBackup = (oldestBackupTime as Date).toISOString();
+      }
+      if (newestBackupTime !== null) {
+        summary.dateRange.newestBackup = (newestBackupTime as Date).toISOString();
+      }
+
+      const response: BackupStatusQueryResponse = {
+        data: backupData,
+        metadata: {
+          pageSize: params?.pageSize || backupData.length,
+          after: pageToken,
+          totalReturned: backupData.length
+        },
+        summary
+      };
+
+      await this.auditLog({
+        action: 'query_backup_status',
+        success: true,
+        deviceId: params?.deviceId,
+        organizationId: params?.organizationId,
+        details: {
+          status: params?.status || 'all',
+          backupType: params?.backupType || 'all',
+          devicesFound: backupData.length,
+          protectedDevices: summary.protectedDevices,
+          protectionRate: summary.complianceMetrics.protectionRate,
+          successRate: summary.complianceMetrics.successRate,
+          devicesRequiringAttention: summary.complianceMetrics.devicesRequiringAttention
+        }
+      });
+
+      return response;
+    } catch (error) {
+      logger.error('Failed to query backup status:', error);
+      await this.auditLog({
+        action: 'query_backup_status',
+        success: false,
+        deviceId: params?.deviceId,
+        organizationId: params?.organizationId,
+        details: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          endpoint: '/v2/queries/backup-status'
         }
       });
       throw error;

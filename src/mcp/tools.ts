@@ -496,5 +496,75 @@ Returns comprehensive activity data including:
       },
       required: []
     }
+  },
+  {
+    name: 'ninjaone_query_backup_status',
+    description: `Query backup status across your entire device environment with advanced filtering and compliance metrics.
+
+This tool provides comprehensive backup monitoring including:
+- Backup job status tracking (SUCCESS, FAILED, RUNNING, WARNING, NEVER_RUN)
+- Protection rate calculations (% of devices with backup enabled)
+- Success rate metrics for compliance reporting
+- Device-level backup details with last backup time, next scheduled backup
+- Failure reason tracking and consecutive failure counts
+- Backup type filtering (FULL, INCREMENTAL, DIFFERENTIAL)
+- Organization and device class breakdowns
+
+Use Cases:
+- "Show me all devices with failed backups"
+- "What's our backup protection rate across all organizations?"
+- "Which devices haven't been backed up in the last 24 hours?"
+- "Find all servers with backup failures"
+- "Get backup status for organization 5"
+- "Show devices requiring backup attention"
+
+Returns detailed backup data including:
+- Device backup status with timestamps
+- Compliance metrics (protection rate, success rate, devices needing attention)
+- Summary statistics by status, backup type, organization, and device class
+- Date range information (oldest and newest backup times)
+- Pagination support for large environments
+
+IMPORTANT: This tool queries the NinjaOne backup monitoring endpoint.
+Verify that backup monitoring is enabled in your NinjaOne environment.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        deviceId: {
+          type: 'number',
+          description: 'Filter by specific device ID (optional)'
+        },
+        organizationId: {
+          type: 'number',
+          description: 'Filter by organization ID (optional)'
+        },
+        status: {
+          type: 'string',
+          enum: ['SUCCESS', 'FAILED', 'RUNNING', 'WARNING', 'NEVER_RUN'],
+          description: 'Filter by backup status (optional)'
+        },
+        backupType: {
+          type: 'string',
+          enum: ['FULL', 'INCREMENTAL', 'DIFFERENTIAL'],
+          description: 'Filter by backup type (optional)'
+        },
+        df: {
+          type: 'string',
+          description: 'Device filter using NinjaOne df syntax for advanced filtering (e.g., "class=WINDOWS_SERVER AND org=123") (optional)'
+        },
+        pageSize: {
+          type: 'number',
+          description: 'Results per page (default: 100, max: 1000)',
+          default: 100,
+          minimum: 1,
+          maximum: 1000
+        },
+        after: {
+          type: 'string',
+          description: 'Pagination cursor from previous response to fetch next page'
+        }
+      },
+      required: []
+    }
   }
 ];

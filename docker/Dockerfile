@@ -1,4 +1,8 @@
+# =============================================================================
+# NinjaOne MCP Bridge - Dockerfile
 # Multi-stage build for production
+# =============================================================================
+
 FROM node:18-alpine AS builder
 
 WORKDIR /app
@@ -16,8 +20,14 @@ COPY src ./src
 # Build TypeScript
 RUN npm run build
 
+# =============================================================================
 # Production stage
+# =============================================================================
 FROM node:18-alpine
+
+LABEL maintainer="rr@canopymsp.com"
+LABEL version="1.3.0"
+LABEL description="NinjaOne MCP Bridge Server"
 
 WORKDIR /app
 
@@ -38,10 +48,15 @@ RUN mkdir -p /app/logs && \
 # Run as non-root user
 USER node
 
+# Environment defaults
+ENV NODE_ENV=production
+ENV PORT=8102
+
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD node -e "const http = require('http'); http.get('http://localhost:8102/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
-EXPOSE 3000
+EXPOSE 8102
 
-CMD ["node", "dist/index.js"]
+# Default: HTTP transport for Docker
+CMD ["node", "dist/index.js", "--transport", "http"]

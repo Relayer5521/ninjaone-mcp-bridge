@@ -38,3 +38,6 @@ temp/
 secrets/*.token
 secrets/*.key
 secrets/*.pem
+
+# Claude Code
+.claude/

@@ -485,3 +485,34 @@ export interface BackupStatusQueryResponse {
     };
   };
 }
+
+// ============ INSTALLER TYPES ============
+
+export type InstallerType =
+  | 'WINDOWS_MSI'
+  | 'WINDOWS_EXE'
+  | 'MAC_DMG'
+  | 'MAC_PKG'
+  | 'LINUX_DEB'
+  | 'LINUX_RPM';
+
+export interface InstallerResponse {
+  url: string;                    // Pre-signed download URL
+  expiresAt?: string;             // When the URL expires (ISO date string)
+}
+
+export interface InstallerDownloadResult {
+  organizationId: number;
+  organizationName?: string;
+  installerType: InstallerType;
+  downloadUrl: string;
+  expiresAt?: string;
+  requestedAt: string;            // ISO date string when request was made
+}
+
+export interface AllInstallersResponse {
+  organizationId: number;
+  organizationName?: string;
+  installers: InstallerDownloadResult[];
+  requestedAt: string;
+}

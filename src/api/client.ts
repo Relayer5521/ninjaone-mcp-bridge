@@ -30,7 +30,12 @@ import {
   EnhancedActivity,
   BackupStatusQueryParams,
   BackupStatusQueryResponse,
-  BackupJobStatus
+  BackupJobStatus,
+  // Installer types
+  InstallerType,
+  InstallerResponse,
+  InstallerDownloadResult,
+  AllInstallersResponse
 } from './types.js';
 import { config } from '../config.js';
 
@@ -1023,6 +1028,114 @@ export class NinjaOneClient {
       });
       throw error;
     }
+  }
+
+  // ============ INSTALLER METHODS ============
+
+  /**
+   * Get a pre-signed download URL for a NinjaOne agent installer.
+   * The URL is organization-specific and time-limited.
+   *
+   * @param orgId Organization ID
+   * @param installerType Type of installer (WINDOWS_MSI, WINDOWS_EXE, MAC_DMG, MAC_PKG, LINUX_DEB, LINUX_RPM)
+   * @returns InstallerDownloadResult with download URL
+   */
+  async getInstaller(orgId: number, installerType: InstallerType): Promise<InstallerDownloadResult> {
+    try {
+      const endpoint = `/v2/organization/${orgId}/installer/${installerType}`;
+      logger.debug(`Fetching installer: org=${orgId}, type=${installerType}`);
+
+      const response = await this.request<InstallerResponse>(endpoint);
+
+      const result: InstallerDownloadResult = {
+        organizationId: orgId,
+        installerType,
+        downloadUrl: response.url,
+        expiresAt: response.expiresAt,
+        requestedAt: new Date().toISOString()
+      };
+
+      await this.auditLog({
+        action: 'get_installer',
+        success: true,
+        organizationId: orgId,
+        details: {
+          installerType,
+          hasUrl: !!response.url
+        }
+      });
+
+      return result;
+    } catch (error) {
+      logger.error(`Failed to get installer for org ${orgId}, type ${installerType}:`, error);
+      await this.auditLog({
+        action: 'get_installer',
+        success: false,
+        organizationId: orgId,
+        details: {
+          installerType,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get pre-signed download URLs for all available installer types for an organization.
+   *
+   * @param orgId Organization ID
+   * @returns AllInstallersResponse with all installer download URLs
+   */
+  async getAllInstallers(orgId: number): Promise<AllInstallersResponse> {
+    const installerTypes: InstallerType[] = [
+      'WINDOWS_MSI',
+      'WINDOWS_EXE',
+      'MAC_DMG',
+      'MAC_PKG',
+      'LINUX_DEB',
+      'LINUX_RPM'
+    ];
+
+    logger.info(`Fetching all installers for organization ${orgId}`);
+    const requestedAt = new Date().toISOString();
+
+    const results: InstallerDownloadResult[] = [];
+    const errors: { type: InstallerType; error: string }[] = [];
+
+    // Fetch all installer types in parallel
+    const promises = installerTypes.map(async (type) => {
+      try {
+        const result = await this.getInstaller(orgId, type);
+        results.push(result);
+      } catch (error) {
+        errors.push({
+          type,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+        logger.warn(`Failed to get ${type} installer for org ${orgId}: ${error}`);
+      }
+    });
+
+    await Promise.all(promises);
+
+    await this.auditLog({
+      action: 'get_all_installers',
+      success: errors.length === 0,
+      organizationId: orgId,
+      details: {
+        totalTypes: installerTypes.length,
+        successfulTypes: results.length,
+        failedTypes: errors.length,
+        errors: errors.length > 0 ? errors : undefined
+      }
+    });
+
+    return {
+      organizationId: orgId,
+      installers: results,
+      requestedAt
+    };
   }
 }
 

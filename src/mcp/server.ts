@@ -564,6 +564,60 @@ export class NinjaOneMCPServer {
         };
       }
 
+      // ============ INSTALLER TOOLS ============
+      case 'ninjaone_get_installer': {
+        const result = await this.ninjaClient.getInstaller(args.orgId, args.installerType);
+
+        return {
+          success: true,
+          organizationId: result.organizationId,
+          installerType: result.installerType,
+          downloadUrl: result.downloadUrl,
+          expiresAt: result.expiresAt || 'Not specified',
+          requestedAt: result.requestedAt,
+          instructions: `Download the installer using the URL above. The installer is pre-configured for organization ${result.organizationId} and will auto-register devices to that org.`
+        };
+      }
+
+      case 'ninjaone_get_all_installers': {
+        const result = await this.ninjaClient.getAllInstallers(args.orgId);
+
+        // Group by platform for better readability
+        const windows = result.installers.filter(i => i.installerType.startsWith('WINDOWS'));
+        const mac = result.installers.filter(i => i.installerType.startsWith('MAC'));
+        const linux = result.installers.filter(i => i.installerType.startsWith('LINUX'));
+
+        return {
+          success: true,
+          organizationId: result.organizationId,
+          requestedAt: result.requestedAt,
+          summary: {
+            totalAvailable: result.installers.length,
+            windowsInstallers: windows.length,
+            macInstallers: mac.length,
+            linuxInstallers: linux.length
+          },
+          installers: {
+            windows: windows.map(i => ({
+              type: i.installerType,
+              url: i.downloadUrl,
+              expiresAt: i.expiresAt || 'Not specified'
+            })),
+            mac: mac.map(i => ({
+              type: i.installerType,
+              url: i.downloadUrl,
+              expiresAt: i.expiresAt || 'Not specified'
+            })),
+            linux: linux.map(i => ({
+              type: i.installerType,
+              url: i.downloadUrl,
+              expiresAt: i.expiresAt || 'Not specified'
+            }))
+          },
+          instructions: `All installers are pre-configured for organization ${result.organizationId}. Download URLs are time-limited.`
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }

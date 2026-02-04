@@ -566,5 +566,59 @@ Verify that backup monitoring is enabled in your NinjaOne environment.`,
       },
       required: []
     }
+  },
+
+  // ============ INSTALLER TOOLS ============
+  {
+    name: 'ninjaone_get_installer',
+    description: `Get a pre-signed download URL for a NinjaOne agent installer for a specific organization.
+
+Use this to download organization-specific agent installers that will auto-register devices to the correct org.
+
+Available Installer Types:
+- WINDOWS_MSI: Windows MSI installer (for GPO/SCCM deployment)
+- WINDOWS_EXE: Windows executable installer (for manual installation)
+- MAC_DMG: macOS DMG installer
+- MAC_PKG: macOS PKG installer (for MDM deployment)
+- LINUX_DEB: Debian/Ubuntu .deb package
+- LINUX_RPM: RHEL/CentOS/Fedora .rpm package
+
+The returned URL is pre-signed and time-limited. Download promptly after receiving.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        orgId: {
+          type: 'number',
+          description: 'Organization ID to get the installer for'
+        },
+        installerType: {
+          type: 'string',
+          enum: ['WINDOWS_MSI', 'WINDOWS_EXE', 'MAC_DMG', 'MAC_PKG', 'LINUX_DEB', 'LINUX_RPM'],
+          description: 'Type of installer to download'
+        }
+      },
+      required: ['orgId', 'installerType']
+    }
+  },
+  {
+    name: 'ninjaone_get_all_installers',
+    description: `Get pre-signed download URLs for all available NinjaOne agent installer types for a specific organization.
+
+Returns download links for all 6 installer types:
+- WINDOWS_MSI, WINDOWS_EXE
+- MAC_DMG, MAC_PKG
+- LINUX_DEB, LINUX_RPM
+
+Useful for setting up deployment packages or providing download links to technicians.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        orgId: {
+          type: 'number',
+          description: 'Organization ID to get installers for'
+        }
+      },
+      required: ['orgId']
+    }
   }
 ];

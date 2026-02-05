@@ -31,6 +31,8 @@ import {
   BackupStatusQueryParams,
   BackupStatusQueryResponse,
   BackupJobStatus,
+  // Location types
+  Location,
   // Installer types
   InstallerType,
   InstallerResponse,
@@ -1030,25 +1032,67 @@ export class NinjaOneClient {
     }
   }
 
+  // ============ LOCATION METHODS ============
+
+  /**
+   * Get all locations for an organization.
+   * Locations are required for downloading agent installers.
+   *
+   * @param orgId Organization ID
+   * @returns Array of Location objects
+   */
+  async getLocations(orgId: number): Promise<Location[]> {
+    try {
+      const endpoint = `/v2/organization/${orgId}/locations`;
+      logger.debug(`Fetching locations for org=${orgId}`);
+
+      const locations = await this.request<Location[]>(endpoint);
+
+      await this.auditLog({
+        action: 'get_locations',
+        success: true,
+        organizationId: orgId,
+        details: {
+          locationCount: locations.length
+        }
+      });
+
+      return locations;
+    } catch (error) {
+      logger.error(`Failed to get locations for org ${orgId}:`, error);
+      await this.auditLog({
+        action: 'get_locations',
+        success: false,
+        organizationId: orgId,
+        details: {
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }
+      });
+      throw error;
+    }
+  }
+
   // ============ INSTALLER METHODS ============
 
   /**
    * Get a pre-signed download URL for a NinjaOne agent installer.
-   * The URL is organization-specific and time-limited.
+   * The URL is organization/location-specific and time-limited.
    *
    * @param orgId Organization ID
+   * @param locationId Location ID within the organization
    * @param installerType Type of installer (WINDOWS_MSI, WINDOWS_EXE, MAC_DMG, MAC_PKG, LINUX_DEB, LINUX_RPM)
    * @returns InstallerDownloadResult with download URL
    */
-  async getInstaller(orgId: number, installerType: InstallerType): Promise<InstallerDownloadResult> {
+  async getInstaller(orgId: number, locationId: number, installerType: InstallerType): Promise<InstallerDownloadResult> {
     try {
-      const endpoint = `/v2/organization/${orgId}/installer/${installerType}`;
-      logger.debug(`Fetching installer: org=${orgId}, type=${installerType}`);
+      const endpoint = `/v2/organization/${orgId}/location/${locationId}/installer/${installerType}`;
+      logger.debug(`Fetching installer: org=${orgId}, location=${locationId}, type=${installerType}`);
 
       const response = await this.request<InstallerResponse>(endpoint);
 
       const result: InstallerDownloadResult = {
         organizationId: orgId,
+        locationId,
         installerType,
         downloadUrl: response.url,
         expiresAt: response.expiresAt,
@@ -1060,6 +1104,7 @@ export class NinjaOneClient {
         success: true,
         organizationId: orgId,
         details: {
+          locationId,
           installerType,
           hasUrl: !!response.url
         }
@@ -1067,12 +1112,13 @@ export class NinjaOneClient {
 
       return result;
     } catch (error) {
-      logger.error(`Failed to get installer for org ${orgId}, type ${installerType}:`, error);
+      logger.error(`Failed to get installer for org ${orgId}, location ${locationId}, type ${installerType}:`, error);
       await this.auditLog({
         action: 'get_installer',
         success: false,
         organizationId: orgId,
         details: {
+          locationId,
           installerType,
           error: error instanceof Error ? error.message : 'Unknown error'
         }
@@ -1082,12 +1128,13 @@ export class NinjaOneClient {
   }
 
   /**
-   * Get pre-signed download URLs for all available installer types for an organization.
+   * Get pre-signed download URLs for all available installer types for an organization and location.
    *
    * @param orgId Organization ID
+   * @param locationId Location ID within the organization
    * @returns AllInstallersResponse with all installer download URLs
    */
-  async getAllInstallers(orgId: number): Promise<AllInstallersResponse> {
+  async getAllInstallers(orgId: number, locationId: number): Promise<AllInstallersResponse> {
     const installerTypes: InstallerType[] = [
       'WINDOWS_MSI',
       'WINDOWS_EXE',
@@ -1097,7 +1144,7 @@ export class NinjaOneClient {
       'LINUX_RPM'
     ];
 
-    logger.info(`Fetching all installers for organization ${orgId}`);
+    logger.info(`Fetching all installers for organization ${orgId}, location ${locationId}`);
     const requestedAt = new Date().toISOString();
 
     const results: InstallerDownloadResult[] = [];
@@ -1106,14 +1153,14 @@ export class NinjaOneClient {
     // Fetch all installer types in parallel
     const promises = installerTypes.map(async (type) => {
       try {
-        const result = await this.getInstaller(orgId, type);
+        const result = await this.getInstaller(orgId, locationId, type);
         results.push(result);
       } catch (error) {
         errors.push({
           type,
           error: error instanceof Error ? error.message : 'Unknown error'
         });
-        logger.warn(`Failed to get ${type} installer for org ${orgId}: ${error}`);
+        logger.warn(`Failed to get ${type} installer for org ${orgId}, location ${locationId}: ${error}`);
       }
     });
 
@@ -1124,6 +1171,7 @@ export class NinjaOneClient {
       success: errors.length === 0,
       organizationId: orgId,
       details: {
+        locationId,
         totalTypes: installerTypes.length,
         successfulTypes: results.length,
         failedTypes: errors.length,
@@ -1133,6 +1181,7 @@ export class NinjaOneClient {
 
     return {
       organizationId: orgId,
+      locationId,
       installers: results,
       requestedAt
     };

@@ -486,6 +486,16 @@ export interface BackupStatusQueryResponse {
   };
 }
 
+// ============ LOCATION TYPES ============
+
+export interface Location {
+  id: number;
+  name: string;
+  description?: string;
+  address?: string;
+  organizationId: number;
+}
+
 // ============ INSTALLER TYPES ============
 
 export type InstallerType =
@@ -504,6 +514,8 @@ export interface InstallerResponse {
 export interface InstallerDownloadResult {
   organizationId: number;
   organizationName?: string;
+  locationId: number;
+  locationName?: string;
   installerType: InstallerType;
   downloadUrl: string;
   expiresAt?: string;
@@ -513,6 +525,8 @@ export interface InstallerDownloadResult {
 export interface AllInstallersResponse {
   organizationId: number;
   organizationName?: string;
+  locationId: number;
+  locationName?: string;
   installers: InstallerDownloadResult[];
   requestedAt: string;
 }

@@ -568,12 +568,30 @@ Verify that backup monitoring is enabled in your NinjaOne environment.`,
     }
   },
 
+  // ============ LOCATION TOOLS ============
+  {
+    name: 'ninjaone_get_locations',
+    description: `Get all locations for an organization. Locations are required for downloading agent installers.
+
+Each organization can have one or more locations. Use this to find the locationId needed for installer downloads.`,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        orgId: {
+          type: 'number',
+          description: 'Organization ID to get locations for'
+        }
+      },
+      required: ['orgId']
+    }
+  },
+
   // ============ INSTALLER TOOLS ============
   {
     name: 'ninjaone_get_installer',
-    description: `Get a pre-signed download URL for a NinjaOne agent installer for a specific organization.
+    description: `Get a pre-signed download URL for a NinjaOne agent installer for a specific organization and location.
 
-Use this to download organization-specific agent installers that will auto-register devices to the correct org.
+Use this to download organization/location-specific agent installers that will auto-register devices to the correct org and location.
 
 Available Installer Types:
 - WINDOWS_MSI: Windows MSI installer (for GPO/SCCM deployment)
@@ -583,13 +601,19 @@ Available Installer Types:
 - LINUX_DEB: Debian/Ubuntu .deb package
 - LINUX_RPM: RHEL/CentOS/Fedora .rpm package
 
-The returned URL is pre-signed and time-limited. Download promptly after receiving.`,
+The returned URL is pre-signed and time-limited. Download promptly after receiving.
+
+To find the locationId, use ninjaone_get_locations first.`,
     inputSchema: {
       type: 'object',
       properties: {
         orgId: {
           type: 'number',
-          description: 'Organization ID to get the installer for'
+          description: 'Organization ID'
+        },
+        locationId: {
+          type: 'number',
+          description: 'Location ID within the organization'
         },
         installerType: {
           type: 'string',
@@ -597,28 +621,34 @@ The returned URL is pre-signed and time-limited. Download promptly after receivi
           description: 'Type of installer to download'
         }
       },
-      required: ['orgId', 'installerType']
+      required: ['orgId', 'locationId', 'installerType']
     }
   },
   {
     name: 'ninjaone_get_all_installers',
-    description: `Get pre-signed download URLs for all available NinjaOne agent installer types for a specific organization.
+    description: `Get pre-signed download URLs for all available NinjaOne agent installer types for a specific organization and location.
 
 Returns download links for all 6 installer types:
 - WINDOWS_MSI, WINDOWS_EXE
 - MAC_DMG, MAC_PKG
 - LINUX_DEB, LINUX_RPM
 
-Useful for setting up deployment packages or providing download links to technicians.`,
+Useful for setting up deployment packages or providing download links to technicians.
+
+To find the locationId, use ninjaone_get_locations first.`,
     inputSchema: {
       type: 'object',
       properties: {
         orgId: {
           type: 'number',
-          description: 'Organization ID to get installers for'
+          description: 'Organization ID'
+        },
+        locationId: {
+          type: 'number',
+          description: 'Location ID within the organization'
         }
       },
-      required: ['orgId']
+      required: ['orgId', 'locationId']
     }
   }
 ];

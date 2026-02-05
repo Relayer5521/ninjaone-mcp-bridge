@@ -564,32 +564,52 @@ export class NinjaOneMCPServer {
         };
       }
 
+      // ============ LOCATION TOOLS ============
+      case 'ninjaone_get_locations': {
+        const locations = await this.ninjaClient.getLocations(args.orgId);
+
+        return {
+          success: true,
+          organizationId: args.orgId,
+          locationCount: locations.length,
+          locations: locations.map((loc: { id: number; name: string; description?: string; address?: string }) => ({
+            id: loc.id,
+            name: loc.name,
+            description: loc.description || null,
+            address: loc.address || null
+          })),
+          instructions: 'Use the location ID when calling ninjaone_get_installer or ninjaone_get_all_installers.'
+        };
+      }
+
       // ============ INSTALLER TOOLS ============
       case 'ninjaone_get_installer': {
-        const result = await this.ninjaClient.getInstaller(args.orgId, args.installerType);
+        const result = await this.ninjaClient.getInstaller(args.orgId, args.locationId, args.installerType);
 
         return {
           success: true,
           organizationId: result.organizationId,
+          locationId: result.locationId,
           installerType: result.installerType,
           downloadUrl: result.downloadUrl,
           expiresAt: result.expiresAt || 'Not specified',
           requestedAt: result.requestedAt,
-          instructions: `Download the installer using the URL above. The installer is pre-configured for organization ${result.organizationId} and will auto-register devices to that org.`
+          instructions: `Download the installer using the URL above. The installer is pre-configured for organization ${result.organizationId}, location ${result.locationId} and will auto-register devices accordingly.`
         };
       }
 
       case 'ninjaone_get_all_installers': {
-        const result = await this.ninjaClient.getAllInstallers(args.orgId);
+        const result = await this.ninjaClient.getAllInstallers(args.orgId, args.locationId);
 
         // Group by platform for better readability
-        const windows = result.installers.filter(i => i.installerType.startsWith('WINDOWS'));
-        const mac = result.installers.filter(i => i.installerType.startsWith('MAC'));
-        const linux = result.installers.filter(i => i.installerType.startsWith('LINUX'));
+        const windows = result.installers.filter((i: { installerType: string }) => i.installerType.startsWith('WINDOWS'));
+        const mac = result.installers.filter((i: { installerType: string }) => i.installerType.startsWith('MAC'));
+        const linux = result.installers.filter((i: { installerType: string }) => i.installerType.startsWith('LINUX'));
 
         return {
           success: true,
           organizationId: result.organizationId,
+          locationId: result.locationId,
           requestedAt: result.requestedAt,
           summary: {
             totalAvailable: result.installers.length,
@@ -598,23 +618,23 @@ export class NinjaOneMCPServer {
             linuxInstallers: linux.length
           },
           installers: {
-            windows: windows.map(i => ({
+            windows: windows.map((i: { installerType: string; downloadUrl: string; expiresAt?: string }) => ({
               type: i.installerType,
               url: i.downloadUrl,
               expiresAt: i.expiresAt || 'Not specified'
             })),
-            mac: mac.map(i => ({
+            mac: mac.map((i: { installerType: string; downloadUrl: string; expiresAt?: string }) => ({
               type: i.installerType,
               url: i.downloadUrl,
               expiresAt: i.expiresAt || 'Not specified'
             })),
-            linux: linux.map(i => ({
+            linux: linux.map((i: { installerType: string; downloadUrl: string; expiresAt?: string }) => ({
               type: i.installerType,
               url: i.downloadUrl,
               expiresAt: i.expiresAt || 'Not specified'
             }))
           },
-          instructions: `All installers are pre-configured for organization ${result.organizationId}. Download URLs are time-limited.`
+          instructions: `All installers are pre-configured for organization ${result.organizationId}, location ${result.locationId}. Download URLs are time-limited.`
         };
       }
 
